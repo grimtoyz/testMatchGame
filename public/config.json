@@ -1,0 +1,10 @@
+{
+  "columnsTotal": 8,
+  "rowsTotal": 5,
+  "tileDropHeight": 500,
+  "tileDropDuration": 0.38,
+  "tileDropDelay": 0.07,
+  "swipeThresholdMin": 10,
+  "swipeThresholdMax": 50,
+  "swapDuration": 0.5
+}
