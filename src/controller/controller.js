@@ -45,9 +45,8 @@ export default class Controller {
     setup(configObject){
         this._gameModel = new GameModel(configObject);
 
-        let boardGenerator = new BoardGenerator(this._gameModel);
-
-        this._gameModel.boardMap = boardGenerator.generateBoardWithoutAutoMatches();
+        this._boardGenerator = new BoardGenerator(this._gameModel);
+        this._gameModel.boardMap = this._boardGenerator.generateBoardWithoutAutoMatches();
         this._matchDetector = new MatchDetector(this._gameModel);
 
 
@@ -73,6 +72,7 @@ export default class Controller {
         this._gameView.onTileSwapAttempted(this.onTileSwapAttempted.bind(this));
         this._gameView.onSwapAnimationFinished(this.onTilesSwapped.bind(this));
         this._gameView.onSwapCancelAnimationFinished(this.onSwapCanceled.bind(this));
+        this._gameView.tilesDestructionAnimationFinished(this.onTilesDestroyed.bind(this));
         // this._gameView.dropNewTiles(this._gameModel.allTileGridPositions);
     }
 
@@ -88,13 +88,9 @@ export default class Controller {
         // this._gameModel.boardMap[tileGridPosX][tileGridPosY] = this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY];
         // this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY] = tile;
 
-        console.log(this._gameModel.boardMap[tileGridPosX][tileGridPosY].index, this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY].index);
-
         let tile = this._gameModel.boardMap[tileGridPosX][tileGridPosY];
         this._gameModel.boardMap[tileGridPosX][tileGridPosY] = this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY];
         this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY] = tile;
-
-        console.log(this._gameModel.boardMap[tileGridPosX][tileGridPosY].index, this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY].index);
 
         let matches = this._matchDetector.detectMatchesAroundTile(tileGridPosX, tileGridPosY);
         let matchesNeighbour = this._matchDetector.detectMatchesAroundTile(neighbourGridPosX, neighbourGridPosY);
@@ -111,6 +107,13 @@ export default class Controller {
                 tilesToDestroy.push(matchesNeighbour[i]);
             }
 
+            for(i=0; i<tilesToDestroy.length; i++){
+                let x = tilesToDestroy[i].x;
+                let y = tilesToDestroy[i].y;
+                this._gameModel.boardMap[x][y] = this._boardGenerator.generateRandomTileVO();
+            }
+
+            // this.destroyTiles();
             this._gameView.swapStart(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY, tilesToDestroy);
         }
         else
@@ -165,15 +168,63 @@ export default class Controller {
         this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY].isSwappable = true;
     }
 
-    // onSwapAttempt(tile, directionX, directionY){
-    //     if (this.canBeSwapped(tile.gridPositionX, tile.gridPositionY)){
-    //         console.log("");
-    //     }
-    // }
-    //
-    // canBeSwapped(gridPosX, gridPosY){
-    //     return (this._gameModel.boardMap[gridPosX][gridPosY].isSwappable);
-    // }
+    destroyTiles(tilesToDestroy){
+        let i;
+        for(i=0; i<tilesToDestroy.length; i++){
+            // tilesToDestroy[i]
+            let x = tilesToDestroy[i].x;
+            let y = tilesToDestroy[i].y;
+            // this._gameModel.boardMap[x][y].isSwappable = false;
+            // this._gameModel.boardMap[x][y].isNew = true;
+            this._gameModel.boardMap[x][y] = this._boardGenerator.generateRandomTileVO();
+            // console.log();
+            // this._gameModel.boardMap[x][y].isSwappable = false;
+            // console.log();
+        }
+    }
+
+    onTilesDestroyed(tilesToDestroy){
+        // let i;
+        // for(i=0; i<tilesToDestroy.length; i++){
+        //     // tilesToDestroy[i]
+        //     let x = tilesToDestroy[i].x;
+        //     let y = tilesToDestroy[i].y;
+        //     this._gameModel.boardMap[x][y].isSwappable = false;
+        //     this._gameModel.boardMap[x][y].isSwappable = false;
+        //     this._gameModel.boardMap[x][y] = this._boardGenerator.generateRandomTileVO();
+        //     console.log();
+        //     // this._gameModel.boardMap[x][y].isSwappable = false;
+        //     // console.log();
+        // }
+
+        this._gameView.sinkTiles();
+
+        // this._gameView.dropNewTiles(tilesToDestroy);
+    }
+
+    getTilesToSink(destroyedTiles){
+        // let c;
+        let i;
+        let r;
+        let tilesToSink = new Array();
+        for (i=0; i<destroyedTiles.length; i++){
+            let x=destroyedTiles[i].x;
+            let y=destroyedTiles[i].y;
+
+            for (r=destroyedTiles[i].y; r>=0; r--){
+                if(!this._gameModel.boardMap[x][r].isNew){
+                    this._gameModel.boardMap[x][r].isSwappable = false;
+                    this._gameView.sinkTile(x, r, y);
+                }
+                    tilesToSink.push(this._gameModel.boardMap[x][r]);
+            }
+        }
+        // for (c=0; c < this._gameModel.columnsTotal; c++){
+        //     for (r=0; r < this._gameModel.rowsTotal; r++){
+        //         this._gameModel.boardMap[c][r];
+        //     }
+        // }
+    }
 
     setAllTilesToSwappable(){
         let c;
@@ -181,6 +232,7 @@ export default class Controller {
         for (c=0; c < this._gameModel.boardMap.length; c++){
             for (r=0; r < this._gameModel.boardMap[c].length; r++){
                 this._gameModel.boardMap[c][r].isSwappable = true;
+                this._gameModel.boardMap[c][r].isNew = false;
             }
         }
     }

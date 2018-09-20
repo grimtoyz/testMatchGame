@@ -40,7 +40,7 @@ export default class BoardGenerator{
         return board;
     }
 
-    generateRandomTileVO(excludedTypeH, excludedTypeV){
+    generateRandomTileVO(excludedTypeH=-1, excludedTypeV=-1){
         let types = new Array();
         let i;
         for (i=0; i < this._tokenTypesTotal; i++)

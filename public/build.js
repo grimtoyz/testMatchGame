@@ -52021,7 +52021,10 @@ var BoardGenerator = function () {
         }
     }, {
         key: "generateRandomTileVO",
-        value: function generateRandomTileVO(excludedTypeH, excludedTypeV) {
+        value: function generateRandomTileVO() {
+            var excludedTypeH = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : -1;
+            var excludedTypeV = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : -1;
+
             var types = new Array();
             var i = void 0;
             for (i = 0; i < this._tokenTypesTotal; i++) {
@@ -52462,9 +52465,8 @@ var Controller = function () {
         value: function setup(configObject) {
             this._gameModel = new _gameModel2.default(configObject);
 
-            var boardGenerator = new _boardGenerator2.default(this._gameModel);
-
-            this._gameModel.boardMap = boardGenerator.generateBoardWithoutAutoMatches();
+            this._boardGenerator = new _boardGenerator2.default(this._gameModel);
+            this._gameModel.boardMap = this._boardGenerator.generateBoardWithoutAutoMatches();
             this._matchDetector = new _matchDetector2.default(this._gameModel);
 
             // this._gameModel.tileSwappableMap = boardGenerator.generateNonSwappableMap();
@@ -52489,6 +52491,7 @@ var Controller = function () {
             this._gameView.onTileSwapAttempted(this.onTileSwapAttempted.bind(this));
             this._gameView.onSwapAnimationFinished(this.onTilesSwapped.bind(this));
             this._gameView.onSwapCancelAnimationFinished(this.onSwapCanceled.bind(this));
+            this._gameView.tilesDestructionAnimationFinished(this.onTilesDestroyed.bind(this));
             // this._gameView.dropNewTiles(this._gameModel.allTileGridPositions);
         }
     }, {
@@ -52506,13 +52509,9 @@ var Controller = function () {
             // this._gameModel.boardMap[tileGridPosX][tileGridPosY] = this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY];
             // this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY] = tile;
 
-            console.log(this._gameModel.boardMap[tileGridPosX][tileGridPosY].index, this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY].index);
-
             var tile = this._gameModel.boardMap[tileGridPosX][tileGridPosY];
             this._gameModel.boardMap[tileGridPosX][tileGridPosY] = this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY];
             this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY] = tile;
-
-            console.log(this._gameModel.boardMap[tileGridPosX][tileGridPosY].index, this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY].index);
 
             var matches = this._matchDetector.detectMatchesAroundTile(tileGridPosX, tileGridPosY);
             var matchesNeighbour = this._matchDetector.detectMatchesAroundTile(neighbourGridPosX, neighbourGridPosY);
@@ -52527,6 +52526,13 @@ var Controller = function () {
                     tilesToDestroy.push(matchesNeighbour[i]);
                 }
 
+                for (i = 0; i < tilesToDestroy.length; i++) {
+                    var x = tilesToDestroy[i].x;
+                    var y = tilesToDestroy[i].y;
+                    this._gameModel.boardMap[x][y] = this._boardGenerator.generateRandomTileVO();
+                }
+
+                // this.destroyTiles();
                 this._gameView.swapStart(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY, tilesToDestroy);
             } else this._gameView.swapCancel(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY);
         }
@@ -52581,17 +52587,67 @@ var Controller = function () {
             this._gameModel.boardMap[tileGridPosX][tileGridPosY].isSwappable = true;
             this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY].isSwappable = true;
         }
+    }, {
+        key: "destroyTiles",
+        value: function destroyTiles(tilesToDestroy) {
+            var i = void 0;
+            for (i = 0; i < tilesToDestroy.length; i++) {
+                // tilesToDestroy[i]
+                var x = tilesToDestroy[i].x;
+                var y = tilesToDestroy[i].y;
+                // this._gameModel.boardMap[x][y].isSwappable = false;
+                // this._gameModel.boardMap[x][y].isNew = true;
+                this._gameModel.boardMap[x][y] = this._boardGenerator.generateRandomTileVO();
+                // console.log();
+                // this._gameModel.boardMap[x][y].isSwappable = false;
+                // console.log();
+            }
+        }
+    }, {
+        key: "onTilesDestroyed",
+        value: function onTilesDestroyed(tilesToDestroy) {
+            // let i;
+            // for(i=0; i<tilesToDestroy.length; i++){
+            //     // tilesToDestroy[i]
+            //     let x = tilesToDestroy[i].x;
+            //     let y = tilesToDestroy[i].y;
+            //     this._gameModel.boardMap[x][y].isSwappable = false;
+            //     this._gameModel.boardMap[x][y].isSwappable = false;
+            //     this._gameModel.boardMap[x][y] = this._boardGenerator.generateRandomTileVO();
+            //     console.log();
+            //     // this._gameModel.boardMap[x][y].isSwappable = false;
+            //     // console.log();
+            // }
 
-        // onSwapAttempt(tile, directionX, directionY){
-        //     if (this.canBeSwapped(tile.gridPositionX, tile.gridPositionY)){
-        //         console.log("");
-        //     }
-        // }
-        //
-        // canBeSwapped(gridPosX, gridPosY){
-        //     return (this._gameModel.boardMap[gridPosX][gridPosY].isSwappable);
-        // }
+            this._gameView.sinkTiles();
 
+            // this._gameView.dropNewTiles(tilesToDestroy);
+        }
+    }, {
+        key: "getTilesToSink",
+        value: function getTilesToSink(destroyedTiles) {
+            // let c;
+            var i = void 0;
+            var r = void 0;
+            var tilesToSink = new Array();
+            for (i = 0; i < destroyedTiles.length; i++) {
+                var x = destroyedTiles[i].x;
+                var y = destroyedTiles[i].y;
+
+                for (r = destroyedTiles[i].y; r >= 0; r--) {
+                    if (!this._gameModel.boardMap[x][r].isNew) {
+                        this._gameModel.boardMap[x][r].isSwappable = false;
+                        this._gameView.sinkTile(x, r, y);
+                    }
+                    tilesToSink.push(this._gameModel.boardMap[x][r]);
+                }
+            }
+            // for (c=0; c < this._gameModel.columnsTotal; c++){
+            //     for (r=0; r < this._gameModel.rowsTotal; r++){
+            //         this._gameModel.boardMap[c][r];
+            //     }
+            // }
+        }
     }, {
         key: "setAllTilesToSwappable",
         value: function setAllTilesToSwappable() {
@@ -52600,6 +52656,7 @@ var Controller = function () {
             for (c = 0; c < this._gameModel.boardMap.length; c++) {
                 for (r = 0; r < this._gameModel.boardMap[c].length; r++) {
                     this._gameModel.boardMap[c][r].isSwappable = true;
+                    this._gameModel.boardMap[c][r].isNew = false;
                 }
             }
         }
@@ -53064,39 +53121,6 @@ var GameView = function (_PIXI$Container) {
             return this._tiles[gridPosX][gridPosY];
         }
     }, {
-        key: "swapStartOld",
-        value: function swapStartOld(tile, neighbour) {
-            var tilePosX = tile.gridPositionX;
-            var tilePosY = tile.gridPositionY;
-            var neighbourPosX = neighbour.gridPositionX;
-            var neighbourPosY = neighbour.gridPositionY;
-
-            // let tileTemp = this._tiles[tilePosX][tilePosY];
-            // this._tiles[tilePosX][tilePosY] = this._tiles[neighbourPosX][neighbourPosY];
-            // this._tiles[neighbourPosX][neighbourPosY] = tileTemp;
-
-            // neighbour.gridPositionX = tilePosX;
-            // neighbour.gridPositionY = tilePosY;
-            // tile.gridPositionX = neighbourPosX;
-            // tile.gridPositionY = neighbourPosY;
-
-            // this._currentTile = tile;
-            // this._currentNeighbour = neighbour;
-
-            this.onTileSwapAttempted(tilePosX, tilePosY, neighbourPosX, neighbourPosY);
-
-            // TweenMax.to(
-            //     tile, this._gameModel.swapDuration,
-            //     {ease:Back.easeOut, x:neighbour.x, y:neighbour.y}
-            // );
-            // TweenMax.to(
-            //     neighbour, this._gameModel.swapDuration,
-            //     {ease:Back.easeOut, x:tile.x, y:tile.y,
-            //         onCompleteParams: [tilePosX, tilePosY, neighbourPosX, neighbourPosY], onComplete: this.onSwapAnimationFinished.bind(this)
-            //     }
-            // );
-        }
-    }, {
         key: "swapCancel",
         value: function swapCancel(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY) {
             var tile = this._tiles[tileGridPosX][tileGridPosY];
@@ -53162,13 +53186,63 @@ var GameView = function (_PIXI$Container) {
         key: "destroyTiles",
         value: function destroyTiles(tilesToDestroy) {
             var i = void 0;
+
+            this._activeDestroyTweens = 0;
             for (i = 0; i < tilesToDestroy.length; i++) {
                 var tileGridPosX = tilesToDestroy[i].x;
                 var tileGridPosY = tilesToDestroy[i].y;
-                var tile = this._tiles[tileGridPosX][tileGridPosY];
-                tile.alpha = 0;
+
+                var topTiles = new Array();
+                var offsetY = this._cellHeight;
+                var r = tileGridPosY - 1;
+                while (r >= 0) {
+                    var topTile = this._tiles[tileGridPosX][r];
+                    if (!this._gameModel.boardMap[tileGridPosX][r].isNew) topTiles.push(topTile);else break;
+
+                    r--;
+                }
+
+                r = tileGridPosY + 1;
+                while (r < this._gameModel.rowsTotal) {
+                    if (this._gameModel.boardMap[tileGridPosX][r].isNew) offsetY += this._cellHeight;
+
+                    r++;
+                }
+
+                this._activeDestroyTweens++;
+                _TweenMax2.default.to(this._tiles[tileGridPosX][tileGridPosY], this.TILE_FADE_OUT_DURATION, { ease: Bounce.easeIn, alpha: 0,
+                    onCompleteParams: [tilesToDestroy, topTiles, offsetY], onComplete: this.onTilesDestroyed.bind(this) });
             }
         }
+    }, {
+        key: "onTilesDestroyed",
+        value: function onTilesDestroyed(tilesToDestroy, topTiles, offsetY) {
+            this._activeDestroyTweens--;
+
+            var i = void 0;
+            for (i = 0; i < topTiles.length; i++) {
+                _TweenMax2.default.to(topTiles[i], this._gameModel.swapDuration / 2, { ease: Back.easeOut, y: topTiles[i].y + offsetY,
+                    // onCompleteParams: [tile.gridPositionX, tile.gridPositionY, neighbour.gridPositionX, neighbour.gridPositionY],
+                    onComplete: this.onTopTilesMovedDown.bind(this)
+                });
+            }
+
+            if (this._activeDestroyTweens == 0) this.tilesDestructionAnimationFinished(tilesToDestroy);
+        }
+    }, {
+        key: "onTopTilesMovedDown",
+        value: function onTopTilesMovedDown() {}
+    }, {
+        key: "tilesDestructionAnimationFinished",
+        value: function tilesDestructionAnimationFinished(callback) {
+            this.tilesDestructionAnimationFinished = callback;
+        }
+    }, {
+        key: "sinkTile",
+        value: function sinkTile() {}
+    }, {
+        key: "sinkTiles",
+        value: function sinkTiles() {}
     }, {
         key: "prepareField",
         value: function prepareField() {
@@ -53201,11 +53275,14 @@ var GameView = function (_PIXI$Container) {
     }, {
         key: "dropNewTiles",
         value: function dropNewTiles(tileToDropPositions) {
-            var c = void 0;
-            var r = void 0;
-
-            this._activeDropTweensAmount = 0;
-            this._droppedTileVOs = new Array();
+            // let c;
+            // let r;
+            // let i;
+            // for (i=0; i<tileToDropPositions.length; i++){
+            //
+            // }
+            // this._activeDropTweensAmount = 0;
+            // this._droppedTileVOs = new Array();
 
             // for (c=0; c < this._gameModel.columnsTotal; c++){
             //     for (r=0; r < this._gameModel.rowsTotal; r++){
@@ -53223,12 +53300,25 @@ var GameView = function (_PIXI$Container) {
 
             var i = void 0;
             for (i = 0; i < tileToDropPositions.length; i++) {
-                var position = tileToDropPositions[i];
-                this._droppedTileVOs.push(position);
+                // let position = tileToDropPositions[i];
+                // this._droppedTileVOs.push(position);
+                var c = tileToDropPositions[i].x;
+                var r = tileToDropPositions[i].y;
 
-                this._activeDropTweensAmount++;
-                _TweenMax2.default.to(this._tiles[position.x][position.y], this._gameModel.tileDropDuration, { ease: Bounce.easeOut, delay: i * this._gameModel.tileDropDelay, y: this._tiles[vo.gridPositionX][vo.gridPositionY].y + this._gameModel.tileDropHeight,
-                    onComplete: this.onTweenCompleted.bind(this) });
+                this._tiles[c][r].updateTexture(this._gameModel.boardMap[c][r].index);
+
+                // this._activeDropTweensAmount ++;
+                // TweenMax.to(
+                //     this._tiles[position.x][position.y], this._gameModel.tileDropDuration,
+                //     {ease:Bounce.easeOut, delay:i*this._gameModel.tileDropDelay, y:this._tiles[vo.gridPositionX][vo.gridPositionY].y + this._gameModel.tileDropHeight,
+                //         onComplete: this.onTweenCompleted.bind(this)}
+                // );
+                this._tiles[c][r].y -= this._gameModel.tileDropHeight;
+                this._tiles[c][r].alpha = 1;
+
+                _TweenMax2.default.to(this._tiles[c][r], this._gameModel.tileDropDuration, { ease: Bounce.easeOut, delay: i * this._gameModel.tileDropDelay, y: this._tiles[c][r].y + this._gameModel.tileDropHeight //,
+                    // onComplete: this.onAllTweensCompleted.bind(this)}
+                });
             }
         }
     }, {
@@ -53293,9 +53383,9 @@ var GameView = function (_PIXI$Container) {
             return 20;
         }
     }, {
-        key: "safeZoneWidth",
+        key: "TILE_FADE_OUT_DURATION",
         get: function get() {
-            return this._safeZoneWidth;
+            return 0.3;
         }
     }]);
 
