@@ -61,38 +61,6 @@ export default class GameModel {
         this._boardMap = boardMap;
     }
 
-    // get allTileGridItems(){
-    //     let gridPositions = new Array();
-    //     let c;
-    //     let r;
-    //     for (c=0; c < this.boardMap.length; c++){
-    //         for (r=0; r < this.boardMap[c].length; r++){
-    //             let pos = {};
-    //             pos.x = c;
-    //             pos.y = r;
-    //             gridPositions.push(pos);
-    //         }
-    //     }
-    //
-    //     return gridPositions;
-    // }
-
-    // get allTileGridPositions(){
-    //     let gridPositions = new Array();
-    //     let c;
-    //     let r;
-    //     for (c=0; c < this.boardMap.length; c++){
-    //         for (r=0; r < this.boardMap[c].length; r++){
-    //             let pos = {};
-    //             pos.x = c;
-    //             pos.y = r;
-    //             gridPositions.push(pos);
-    //         }
-    //     }
-    //
-    //     return gridPositions;
-    // }
-
     get TILE_TYPES_TOTAL(){
         return 6;
     }

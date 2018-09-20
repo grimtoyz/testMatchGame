@@ -8,6 +8,7 @@ export default class GameTile extends PIXI.Container{
 
         this._gridPositionX = gridPositionX;
         this._gridPositionY = gridPositionY;
+        this._index = index;
 
         this.init(index);
     }
@@ -35,5 +36,9 @@ export default class GameTile extends PIXI.Container{
 
     set gridPositionY(value){
         this._gridPositionY = value;
+    }
+
+    get index(){
+        return this._index;
     }
 }

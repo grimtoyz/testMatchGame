@@ -10,20 +10,6 @@ export default class MatchDetector{
         this._board = gameModel.boardMap;
     }
 
-    getAllMatchingTiles(){
-        // let c;
-        // let r;
-        // for (c=0; c<this._board.columnsTotal; c++)
-        // {
-        //     let
-        //     let index = this._board[c][0];
-        //     for (r=1; r<this._board.rowsTotal; r++)
-        //     {
-        //         if (this._board[c][r].index =
-        //     }
-        // }
-    }
-
     detectMatchesAroundTile(posX, posY){
         let tilesToDestroy = new Array();
 
@@ -46,13 +32,7 @@ export default class MatchDetector{
 
         if (tilesToDestroy.length > 0)
             tilesToDestroy.push(new Point(posX, posY));
-        // for (r=posY; r>=0; r--)
-        // {
-        //     if (this._board[posX][r].index == this._board[posX][posY].index)
-        //         matchingTilesV.push(this._board[posX][r].index);
-        //     else
-        //         break;
-        // }
+
         return tilesToDestroy;
     }
 

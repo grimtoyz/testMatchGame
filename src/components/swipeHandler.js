@@ -15,6 +15,7 @@ export default class SwipeHandler{
 
         this._isSwapActive = false;
         this._thresholdPassed = false;
+        this._swipeEnabled = true;
     }
 
     onSwipeStarted(event){
@@ -34,7 +35,7 @@ export default class SwipeHandler{
     }
 
     onSwipe(event){
-        if (!this._isSwapActive || this._thresholdPassed)
+        if (!this._isSwapActive || this._thresholdPassed || !this._swipeEnabled)
             return;
 
         this._deltaX = event.data.global.x - this._startingPoint.x;
@@ -57,5 +58,9 @@ export default class SwipeHandler{
 
     onSwiped(callback){
         this.onSwiped = callback;
+    }
+
+    set enableSwipe(value){
+        this._swipeEnabled = value;
     }
 }
