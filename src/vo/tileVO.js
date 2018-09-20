@@ -5,7 +5,7 @@ export default class TileVO{
 
     constructor(tileTypeIndex) {
         this._index = tileTypeIndex;
-        this._isNew = true; // 2DO: should change to isAtPlace ?
+        this._isNew = true;
         this._isSwappable = false;
     }
 

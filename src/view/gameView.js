@@ -130,7 +130,8 @@ export default class GameView extends PIXI.Container{
         let neighbour = this.getNeighbour(tile, directionX, directionY);
 
         if (this.isTileSwappable(tile.gridPositionX, tile.gridPositionY) && this.isTileSwappable(neighbour.gridPositionX, neighbour.gridPositionY)){
-            this.swapStart(tile, neighbour);
+            // this.swapStart(tile, neighbour);
+            this.onTileSwapAttempted(tile.gridPositionX, tile.gridPositionY, neighbour.gridPositionX, neighbour.gridPositionY);
         }
     }
 
@@ -154,22 +155,88 @@ export default class GameView extends PIXI.Container{
         return this._tiles[gridPosX][gridPosY];
     }
 
-    swapStart(tile, neighbour){
+    swapStartOld(tile, neighbour){
         let tilePosX = tile.gridPositionX;
         let tilePosY = tile.gridPositionY;
         let neighbourPosX = neighbour.gridPositionX;
         let neighbourPosY = neighbour.gridPositionY;
 
-        let tileTemp = this._tiles[tilePosX][tilePosY];
-        this._tiles[tilePosX][tilePosY] = this._tiles[neighbourPosX][neighbourPosY];
-        this._tiles[neighbourPosX][neighbourPosY] = tileTemp;
+        // let tileTemp = this._tiles[tilePosX][tilePosY];
+        // this._tiles[tilePosX][tilePosY] = this._tiles[neighbourPosX][neighbourPosY];
+        // this._tiles[neighbourPosX][neighbourPosY] = tileTemp;
 
-        neighbour.gridPositionX = tilePosX;
-        neighbour.gridPositionY = tilePosY;
-        tile.gridPositionX = neighbourPosX;
-        tile.gridPositionY = neighbourPosY;
+        // neighbour.gridPositionX = tilePosX;
+        // neighbour.gridPositionY = tilePosY;
+        // tile.gridPositionX = neighbourPosX;
+        // tile.gridPositionY = neighbourPosY;
 
-        this.onTilesSwapStarted(tilePosX, tilePosY, neighbourPosX, neighbourPosY);
+        // this._currentTile = tile;
+        // this._currentNeighbour = neighbour;
+
+        this.onTileSwapAttempted(tilePosX, tilePosY, neighbourPosX, neighbourPosY);
+
+        // TweenMax.to(
+        //     tile, this._gameModel.swapDuration,
+        //     {ease:Back.easeOut, x:neighbour.x, y:neighbour.y}
+        // );
+        // TweenMax.to(
+        //     neighbour, this._gameModel.swapDuration,
+        //     {ease:Back.easeOut, x:tile.x, y:tile.y,
+        //         onCompleteParams: [tilePosX, tilePosY, neighbourPosX, neighbourPosY], onComplete: this.onSwapAnimationFinished.bind(this)
+        //     }
+        // );
+    }
+
+    swapCancel(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY){
+        let tile = this._tiles[tileGridPosX][tileGridPosY];
+        let neighbour = this._tiles[neighbourGridPosX][neighbourGridPosY];
+
+        TweenMax.to(
+            tile, this._gameModel.swapDuration/2,
+            {ease:Back.easeOut, x:neighbour.x, y:neighbour.y}
+        );
+        TweenMax.to(
+            neighbour, this._gameModel.swapDuration/2,
+            {ease:Back.easeOut, x:tile.x, y:tile.y,
+                onCompleteParams: [tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY], onComplete: this.onSwapCancelForwardAnimationFinished.bind(this)
+            }
+        );
+
+
+    }
+
+    onSwapCancelForwardAnimationFinished(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY){
+        let tile = this._tiles[tileGridPosX][tileGridPosY];
+        let neighbour = this._tiles[neighbourGridPosX][neighbourGridPosY];
+
+        TweenMax.to(
+            tile, this._gameModel.swapDuration/2,
+            {ease:Back.easeOut, x:neighbour.x, y:neighbour.y}
+        );
+        TweenMax.to(
+            neighbour, this._gameModel.swapDuration/2,
+            {ease:Back.easeOut, x:tile.x, y:tile.y,
+                onCompleteParams: [tile.gridPositionX, tile.gridPositionY, neighbour.gridPositionX, neighbour.gridPositionY], onComplete: this.onSwapCancelAnimationFinished.bind(this)
+            }
+        );
+    }
+
+    onSwapCancelAnimationFinished(callback){
+        this.onSwapCancelAnimationFinished = callback;
+    }
+
+    swapStart(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY, tilesToDestroy){
+        let tile = this._tiles[tileGridPosX][tileGridPosY];
+        let neighbour = this._tiles[neighbourGridPosX][neighbourGridPosY];
+
+        let tileTemp = this._tiles[tileGridPosX][tileGridPosY];
+        this._tiles[tileGridPosX][tileGridPosY] = this._tiles[neighbourGridPosX][neighbourGridPosY];
+        this._tiles[neighbourGridPosX][neighbourGridPosY] = tileTemp;
+
+        // this._tiles[neighbourGridPosX][neighbourGridPosY].gridPositionX = tileGridPosX;
+        // this._tiles[neighbourGridPosX][neighbourGridPosY].gridPositionY = tileGridPosY;
+        // this._tiles[tileGridPosX][tileGridPosY].gridPositionX = neighbourGridPosX;
+        // this._tiles[tileGridPosX][tileGridPosY].gridPositionY = neighbourGridPosY;
 
         TweenMax.to(
             tile, this._gameModel.swapDuration,
@@ -178,25 +245,32 @@ export default class GameView extends PIXI.Container{
         TweenMax.to(
             neighbour, this._gameModel.swapDuration,
             {ease:Back.easeOut, x:tile.x, y:tile.y,
-                onCompleteParams: [tilePosX, tilePosY, neighbourPosX, neighbourPosY], onComplete: this.onTilesSwapped.bind(this)
+                onCompleteParams: [tilesToDestroy], onComplete: this.onSwapAnimationFinished.bind(this)
             }
         );
     }
 
-    onTilesSwapStarted(callback){
-        this.onTilesSwapStarted = callback;
+    onSwapAnimationFinished(callback){
+        this.onSwapAnimationFinished = callback;
     }
 
-    onTilesSwapped(callback){
-        this.onTilesSwapped = callback;
-    }
-
-    swapCancel(){
-
+    onTileSwapAttempted(callback){
+        this.onTileSwapAttempted = callback;
     }
 
     isTileSwappable(gridPosX, gridPosY){
         return (this._gameModel.boardMap[gridPosX][gridPosY].isSwappable);
+    }
+
+    destroyTiles(tilesToDestroy){
+        let i;
+        for (i=0; i<tilesToDestroy.length; i++)
+        {
+            let tileGridPosX = tilesToDestroy[i].x;
+            let tileGridPosY = tilesToDestroy[i].y;
+            let tile = this._tiles[tileGridPosX][tileGridPosY];
+            tile.alpha = 0;
+        }
     }
 
     prepareField(){
