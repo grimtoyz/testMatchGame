@@ -5,6 +5,7 @@ import GameTile from "../components/gameTile";
 
 import TweenMax from "gsap/TweenMax";
 import SwipeHandler from "../components/swipeHandler";
+import Point from "../components/point";
 
 export default class GameView extends PIXI.Container{
 
@@ -66,10 +67,8 @@ export default class GameView extends PIXI.Container{
 
     createCheckers(container){
         let sprite;
-        let c;
-        let row;
-        for (row=0; row < this._gameModel.rowsTotal; row++){
-            for (c=0; c < this._gameModel.columnsTotal; c++){
+        for (let row = 0; row < this._gameModel.rowsTotal; row++){
+            for (let c = 0; c < this._gameModel.columnsTotal; c++){
 
                 let shouldDraw = false;
 
@@ -109,13 +108,22 @@ export default class GameView extends PIXI.Container{
                 tile.interactive = true;
                 tile.on('pointerdown', this.onTileClicked.bind(this));
 
-
                 tile.x = this._cellWidth * c;
                 tile.y = this._cellHeight * r - this._gameModel._tileDropHeight;
+
                 this._tilesContainer.addChild(tile);
                 column.push(tile);
             }
             this._tiles.push(column);
+        }
+
+        // let r;
+        let gridPosX = 0;
+        console.log("  INITIAL             ");
+        for (r=0; r < this._gameModel.rowsTotal; r++)
+        {
+            // console.log(this._gameModel.boardMap[gridPosX][r].index, this._tiles[gridPosX][r].index, "x,y:"+this._tiles[gridPosX][r].gridPositionX+","+this._tiles[gridPosX][r].gridPositionY);
+            console.log(this._gameModel.boardMap[gridPosX][r].index, this._tiles[gridPosX][r].index, "x,y:"+this._tiles[gridPosX][r].gridPositionX+","+this._tiles[gridPosX][r].gridPositionY, "    ", this._gameModel.boardMap[gridPosX+1][r].index, this._tiles[gridPosX+1][r].index, "x,y:"+this._tiles[gridPosX+1][r].gridPositionX+","+this._tiles[gridPosX+1][r].gridPositionY);
         }
     }
 
@@ -215,6 +223,14 @@ export default class GameView extends PIXI.Container{
                 onCompleteParams:[tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY, tilesToDestroy, tilesToDestroy], onComplete: this.onSwapAnimationFinished.bind(this)
             }
         );
+
+        // let r;
+        // console.log("  VIEW AFTER START SWAP           ");
+        // let gridPosX = 0;
+        // for (r=0; r < this._gameModel.rowsTotal; r++)
+        // {
+        //     console.log(this._gameModel.boardMap[gridPosX][r].index, this._tiles[gridPosX][r].index, "x,y:"+this._tiles[gridPosX][r].gridPositionX+","+this._tiles[gridPosX][r].gridPositionY, "    ", this._gameModel.boardMap[gridPosX+1][r].index, this._tiles[gridPosX+1][r].index, "x,y:"+this._tiles[gridPosX+1][r].gridPositionX+","+this._tiles[gridPosX+1][r].gridPositionY);
+        // }
     }
 
     onSwapAnimationFinished(callback){
@@ -232,92 +248,50 @@ export default class GameView extends PIXI.Container{
     destroyTiles(tilesToDestroy){
         let i;
 
-        // this._activeDestroyTweens = 0;
         for (i=0; i<tilesToDestroy.length; i++)
         {
             let tileGridPosX = tilesToDestroy[i].x;
             let tileGridPosY = tilesToDestroy[i].y;
 
-            let topTiles = new Array();
-            // let offsetY = this._cellHeight;
-            let offsetY = 1;
-            let r = tileGridPosY - 1;
-            while (r>=0){
-                let topTile = this._tiles[tileGridPosX][r];
-                if (!this._gameModel.boardMap[tileGridPosX][r].isNew)
-                    topTiles.push(topTile);
-                else
-                    break;
-
-                r--;
-            }
-
-            r = tileGridPosY + 1;
-            while (r < this._gameModel.rowsTotal){
-                if (this._gameModel.boardMap[tileGridPosX][r].isNew)
-                    // offsetY += this._cellHeight;
-                    offsetY ++;
-
-                r++;
-            }
-
-            // this._activeDestroyTweens ++;
             TweenMax.to(
                 this._tiles[tileGridPosX][tileGridPosY], this.TILE_FADE_OUT_DURATION,
-                {ease:Bounce.easeIn, alpha:0.5,
-                onCompleteParams:[tilesToDestroy, topTiles, offsetY], onComplete: this.onTilesDestroyed.bind(this)}
+                // {ease:Bounce.easeIn, alpha:0.2, y:tile.y + posDeltaY * this._cellHeight,
+                {ease:Bounce.easeIn, alpha:0.2,
+                // onCompleteParams:[tilesToDestroy, topTiles, offsetY], onComplete: this.onTileDestroyed.bind(this)}
+                onComplete: this.onTileDestroyedAnimationComplete.bind(this)}
             );
         }
     }
 
-    onTilesDestroyed(tilesToDestroy, topTiles, offsetY){
-        // this._activeDestroyTweens --;
+    onTileDestroyedAnimationComplete(callback){
+        this.onTileDestroyedAnimationComplete = callback;
+    }
 
-        // this._offsetY = offsetY;
-
-        let i;
-        for (i=0; i < topTiles.length; i++){
-            // let posX = function(){return topTiles[i].gridPositionX};
-            // let posY = function(){return topTiles[i].gridPositionY};
+    sinkTiles(tilesToSink){
+        tilesToSink.forEach(function (tileVO) {
+            let posDeltaY = tileVO.movementDelta;
+            let tile = this._tiles[tileVO.gridPosX][tileVO.gridPosY - posDeltaY];
 
             TweenMax.to(
-                topTiles[i], this._gameModel._tileDropDuration/2,
-                {ease:Back.easeOut, y:topTiles[i].y + offsetY*this._cellHeight,
-                    // onCompleteParams: [tile.gridPositionX, tile.gridPositionY, neighbour.gridPositionX, neighbour.gridPositionY],
-                    // onParamsComplete:[topTiles[i].gridPositionX, topTiles[i].gridPositionY, offsetY], onComplete: this.onTopTilesMovedDown.bind(this)
-                    onCompleteParams:[topTiles[i].gridPositionX, topTiles[i].gridPositionY, offsetY],
-                    onComplete: this.onTopTilesMovedDown.bind(this)
+                tile, this._gameModel._tileDropDuration,
+                {ease:Back.easeOut, y:tile.y + posDeltaY*this._cellHeight,
+                    onCompleteParams: [tile, posDeltaY],
+                    onComplete: this.onTileSank.bind(this)
                 }
             );
-        }
-
-        // if (this._activeDestroyTweens == 0)
-        //     this.tilesDestructionAnimationFinished(tilesToDestroy, topTiles, offsetY);
+        }.bind(this));
     }
 
-    onTopTilesMovedDown(gridPosX, gridPosY, offsetY){
-        let posX = gridPosX;
-        let posY = gridPosY;
+    onTileSank(tile, posDeltaY){
+        this._tiles[tile.gridPositionX][tile.gridPositionY + posDeltaY] = tile;
+        this._tiles[tile.gridPositionX][tile.gridPositionY + posDeltaY].gridPositionY += posDeltaY;
 
-        let targetPosX = gridPosX;
-        let targetPosY = gridPosY + offsetY;
-
-        this.swapTilesData(posX, posY, targetPosX, targetPosY);
-
-        // this._tiles[gridPosX][gridPosY].x -= 20;
-        this._tiles[gridPosX][gridPosY].y = targetPosY;
-        this._tiles[gridPosX][gridPosY].updateTexture(this._gameModel.boardMap[gridPosX][gridPosY].index);
-
-        this.onTileSinkingAnimComplete(gridPosX, gridPosY, offsetY);
+        this.onTileSinkingAnimComplete(tile.gridPositionX, tile.gridPositionY);
     }
 
     onTileSinkingAnimComplete(callback){
         this.onTileSinkingAnimComplete = callback;
     }
-
-    // tilesDestructionAnimationFinished(callback){
-    //     this.tilesDestructionAnimationFinished=callback;
-    // }
 
     prepareField(){
         let c;
@@ -340,6 +314,11 @@ export default class GameView extends PIXI.Container{
     }
 
     swapTilesData(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY){
+        // console.log ("before swapping tile data:", "tile at", tileGridPosX + ",", tileGridPosY);
+        // console.log ("index", this._tiles[tileGridPosX][tileGridPosY].index, "posX, posY:", this._tiles[tileGridPosX][tileGridPosY].gridPositionX, this._tiles[tileGridPosX][tileGridPosY].gridPositionY);
+        // console.log ("before swapping tile data:", "tile at", neighbourGridPosX + ",", neighbourGridPosY);
+        // console.log ("index", this._tiles[neighbourGridPosX][neighbourGridPosY].index, "posX, posY:", this._tiles[neighbourGridPosX][neighbourGridPosY].gridPositionX, this._tiles[neighbourGridPosX][neighbourGridPosY].gridPositionY);
+
         let tileTemp = this._tiles[tileGridPosX][tileGridPosY];
         this._tiles[tileGridPosX][tileGridPosY] = this._tiles[neighbourGridPosX][neighbourGridPosY];
         this._tiles[neighbourGridPosX][neighbourGridPosY] = tileTemp;
@@ -349,6 +328,11 @@ export default class GameView extends PIXI.Container{
 
         this._tiles[neighbourGridPosX][neighbourGridPosY].gridPositionX = neighbourGridPosX;
         this._tiles[neighbourGridPosX][neighbourGridPosY].gridPositionY = neighbourGridPosY;
+
+        // console.log ("after swapping tile data:", "tile at", tileGridPosX + ",", tileGridPosY);
+        // console.log ("index", this._tiles[tileGridPosX][tileGridPosY].index, "posX, posY:", this._tiles[tileGridPosX][tileGridPosY].gridPositionX, this._tiles[tileGridPosX][tileGridPosY].gridPositionY);
+        // console.log ("after swapping tile data:", "tile at", neighbourGridPosX + ",", neighbourGridPosY);
+        // console.log ("index", this._tiles[neighbourGridPosX][neighbourGridPosY].index, "posX, posY:", this._tiles[neighbourGridPosX][neighbourGridPosY].gridPositionX, this._tiles[neighbourGridPosX][neighbourGridPosY].gridPositionY);
     }
 
     onAllTweensCompleted(){

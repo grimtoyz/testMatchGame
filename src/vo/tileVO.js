@@ -7,6 +7,7 @@ export default class TileVO{
         this._index = tileTypeIndex;
         this._isNew = true;
         this._isSwappable = false;
+        this._movementDelta = 0;
     }
 
     get index(){
@@ -27,5 +28,29 @@ export default class TileVO{
 
     set isNew(value){
         this._isNew = value;
+    }
+
+    set movementDelta(value){
+        this._movementDelta = value;
+    }
+
+    get movementDelta(){
+        return this._movementDelta;
+    }
+
+    set gridPosX(value){
+        this._gridPosX = value;
+    }
+
+    get gridPosX(){
+        return this._gridPosX;
+    }
+
+    set gridPosY(value){
+        this._gridPosY = value;
+    }
+
+    get gridPosY(){
+        return this._gridPosY;
     }
 }

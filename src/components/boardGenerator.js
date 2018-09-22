@@ -40,7 +40,25 @@ export default class BoardGenerator{
         return board;
     }
 
-    generateRandomTileVO(excludedTypeH=-1, excludedTypeV=-1){
+    moveDestroyedTilesToTop(column){
+
+        column.forEach(function(item, index) {
+            item.movementDelta = index;
+            // console.log(index);
+        });
+
+        let destroyedTiles = column.filter(tileVO => tileVO.isNew == true);
+        let sinkingTiles = column.filter(tileVO => tileVO.isNew == false);
+        let updatedColumn = destroyedTiles.concat(sinkingTiles);
+
+        updatedColumn.forEach(function (item, index) {
+            item.movementDelta = index - item.movementDelta
+        });
+
+        return updatedColumn;
+    }
+
+    generateRandomTileVO(excludedTypeH=-1, excludedTypeV=-1, column, row){
         let types = new Array();
         let i;
         for (i=0; i < this._tokenTypesTotal; i++)
