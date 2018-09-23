@@ -52534,6 +52534,10 @@ var _tutorial = __webpack_require__(/*! ../tutorial/tutorial */ "./src/tutorial/
 
 var _tutorial2 = _interopRequireDefault(_tutorial);
 
+var _point = __webpack_require__(/*! ../components/point */ "./src/components/point.js");
+
+var _point2 = _interopRequireDefault(_point);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -52579,8 +52583,6 @@ var Controller = function () {
 
             this._matchDetector = new _matchDetector2.default(this._gameModel);
 
-            // this._matchDetector.swapTwoBoardElements(this._gameModel.boardMap, 0, 0, 1, 1);
-
             while (this._matchDetector.findAnyPotentialSwap().length <= 0) {
                 this._gameModel.boardMap = this._boardGenerator.generateBoardWithoutAutoMatches();
             }
@@ -52589,6 +52591,9 @@ var Controller = function () {
         key: "startGame",
         value: function startGame() {
             this._gameView = new _gameView2.default(this._app.view, this._gameModel);
+
+            var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            if (iOS) this._gameView.createLink();
 
             this._gameView.createTiles();
             this._app.stage.addChild(this._gameView);
@@ -52711,9 +52716,12 @@ var Controller = function () {
                 this.moveColumns(matches);
                 this._gameView.destroyTiles(matches);
             } else this._gameView.allowSwipe(true);
-            // if (this._gameModel.boardMap[gridPosX][gridPosY].isNew){
-            //     let newTileVO = this._gameModel.boardMap[gridPosX][gridPosY];
-            //     // this._gameView.dropNewTile(newTileVO);
+            // else if (this._matchDetector.findAnyPotentialSwap().length > 0)
+            //     this._gameView.allowSwipe(true);
+            // else {
+            //     let tilesToDestroy = [new Point(Math.random() * this._gameModel.columnsTotal, Math.random() * this._gameModel.rowsTotal)];
+            //     this.moveColumns(tilesToDestroy);
+            //     this._gameView.destroyTiles();
             // }
         }
     }, {
@@ -52746,33 +52754,12 @@ var Controller = function () {
         key: "resize",
         value: function resize() {
             this._app.renderer.resize(window.innerWidth, window.innerHeight);
-            // var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            // var iwidth = (iOS) ? screen.width : window.innerWidth, iheight = (iOS) ? screen.height : window.innerHeight;
 
             var ratio = window.innerWidth / this._gameModel.BACKGROUND_WIDTH;
-            // if (window.innerWidth < this._gameView.safeZoneWidth)
-            //     ratio = window.innerWidth / 1280;
-            // ratio = window.innerWidth / 1280;
-            // this._app.stage.scale.x = this._app.stage.scale.y = ratio;
-
-
-            // if (window.innerWidth > 1280)
-            //     ratio = window.innerWidth / 1280;
-            // this._app.stage.scale.x = this._app.stage.scale.y = ratio;
 
             this._app.stage.scale.x = this._app.stage.scale.y = ratio;
 
             this._app.renderer.view.style.position = 'absolute';
-
-            // this._tutorial.resize();
-
-            // this._app.renderer.view.style.left = 0;
-            // this._app.renderer.view.style.top = 0;
-            // this._app.renderer.view.style.left = ((window.innerWidth - this._app.renderer.width) >> 1) + 'px';
-
-            // this._gameView.onResize(ratio);
-
-            // alert(ratio);
         }
     }, {
         key: "isGamefieldStatic",
@@ -52940,6 +52927,11 @@ var GameModel = function () {
         key: 'BACKGROUND_HEIGHT',
         get: function get() {
             return 1024;
+        }
+    }, {
+        key: 'APP_STORE_URL',
+        get: function get() {
+            return 'https://itunes.apple.com/us/app/fruit-link-match-3-free-game/id1128834660?mt=8';
         }
     }], [{
         key: 'CONFIG_URL',
@@ -53311,6 +53303,41 @@ var GameView = function (_PIXI$Container) {
             }
         }
     }, {
+        key: "createLink",
+        value: function createLink() {
+            this.element = document.createElement('a');
+            this.element.target = '_blank';
+
+            this.element.href = this._gameModel.APP_STORE_URL;
+
+            var linkText = new PIXI.Text('Tap to open Apple Store', new PIXI.TextStyle({
+                fontFamily: 'Arial',
+                fontSize: 25,
+                fontWeight: 'bold',
+                fill: ['#ffffff'],
+                dropShadow: true,
+                dropShadowColor: '#044335',
+                dropShadowBlur: 1,
+                dropShadowDistance: 1,
+                strokeThickness: 4
+            }));
+
+            linkText.anchor.x = 0.5;
+            linkText.x = this._backgroundContainer.width / 2;
+            linkText.y = this._fieldContainer.y + 500;
+            linkText.interactive = true;
+            linkText.on('pointerdown', this.onLinkClick.bind(this));
+
+            this.addChild(linkText);
+        }
+    }, {
+        key: "onLinkClick",
+        value: function onLinkClick() {
+            var e = window.document.createEvent("MouseEvents");
+            e.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+            this.element.dispatchEvent(e);
+        }
+    }, {
         key: "onTileClicked",
         value: function onTileClicked(event) {
             this._lastTileClicked = event.currentTarget;
@@ -53613,39 +53640,38 @@ var GameView = function (_PIXI$Container) {
         //     }
         // }
 
-    }, {
-        key: "onResize",
-        value: function onResize(ratio) {
-            // this._appView.renderer.resize(window.innerWidth, window.innerHeight);
-            // this._backgroundContainer.width = this._appView.width;
-            // this._backgroundContainer.height = this._appView.height;
-            var screenWidth = this._appView.width;
-            var screenHeight = this._appView.height;
+        // onResize(ratio){
+        //     // this._appView.renderer.resize(window.innerWidth, window.innerHeight);
+        //     // this._backgroundContainer.width = this._appView.width;
+        //     // this._backgroundContainer.height = this._appView.height;
+        //     let screenWidth = this._appView.width;
+        //     let screenHeight = this._appView.height;
+        //
+        //     var imageRatio = 1280 / 1080;
+        //     var screenRatio = screenWidth / screenHeight;
+        //     let scale;
+        //     if(screenRatio >= imageRatio) {
+        //         // scale = screenHeight / this._backgroundContainer.height;
+        //         scale = screenWidth / 1280;
+        //         // imageSprite.height = imageSprite.height / (imageSprite.width / containerWidth);
+        //         // imageSprite.width = containerWidth;
+        //         // imageSprite.position.x = 0;
+        //         // imageSprite.position.y = (containerHeight - imageSprite.height) / 2;
+        //     }else{
+        //         // imageSprite.width = imageSprite.width / (imageSprite.height / containerHeight);
+        //         // imageSprite.height = containerHeight;
+        //         // imageSprite.position.y = 0;
+        //         // imageSprite.position.x = (containerWidth - imageSprite.width) / 2;
+        //         scale = screenHeight / 1080;
+        //         // scale = screenWidth / this._backgroundContainer.width;
+        //     }
+        //
+        //     scale = screenRatio > 1 ? this._appView.renderer.height/500 : this._appView.renderer.width/500;
+        //
+        //     // this._backgroundContainer.scale.x = this._backgroundContainer.scale.y = scale/ratio;
+        //     this.fieldContainer.scale.x = this.fieldContainer.scale.y = scale;
+        // }
 
-            var imageRatio = 1280 / 1080;
-            var screenRatio = screenWidth / screenHeight;
-            var scale = void 0;
-            if (screenRatio >= imageRatio) {
-                // scale = screenHeight / this._backgroundContainer.height;
-                scale = screenWidth / 1280;
-                // imageSprite.height = imageSprite.height / (imageSprite.width / containerWidth);
-                // imageSprite.width = containerWidth;
-                // imageSprite.position.x = 0;
-                // imageSprite.position.y = (containerHeight - imageSprite.height) / 2;
-            } else {
-                // imageSprite.width = imageSprite.width / (imageSprite.height / containerHeight);
-                // imageSprite.height = containerHeight;
-                // imageSprite.position.y = 0;
-                // imageSprite.position.x = (containerWidth - imageSprite.width) / 2;
-                scale = screenHeight / 1080;
-                // scale = screenWidth / this._backgroundContainer.width;
-            }
-
-            scale = screenRatio > 1 ? this._appView.renderer.height / 500 : this._appView.renderer.width / 500;
-
-            // this._backgroundContainer.scale.x = this._backgroundContainer.scale.y = scale/ratio;
-            this.fieldContainer.scale.x = this.fieldContainer.scale.y = scale;
-        }
     }, {
         key: "cellWidth",
         get: function get() {

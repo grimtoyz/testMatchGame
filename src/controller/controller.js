@@ -8,6 +8,7 @@ import GameModel from "../model/gameModel";
 import JSONLoader from "../utils/JSONLoader";
 import MatchDetector from "../components/matchDetector";
 import Tutorial from "../tutorial/tutorial";
+import Point from "../components/point";
 
 
 export default class Controller {
@@ -45,8 +46,6 @@ export default class Controller {
 
         this._matchDetector = new MatchDetector(this._gameModel);
 
-        // this._matchDetector.swapTwoBoardElements(this._gameModel.boardMap, 0, 0, 1, 1);
-
         while (this._matchDetector.findAnyPotentialSwap().length <= 0)
         {
             this._gameModel.boardMap = this._boardGenerator.generateBoardWithoutAutoMatches();
@@ -55,6 +54,10 @@ export default class Controller {
 
     startGame(){
         this._gameView = new GameView(this._app.view, this._gameModel);
+
+        let iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        if (iOS)
+            this._gameView.createLink();
 
         this._gameView.createTiles();
         this._app.stage.addChild(this._gameView);
@@ -173,10 +176,13 @@ export default class Controller {
         }
         else
             this._gameView.allowSwipe(true);
-            // if (this._gameModel.boardMap[gridPosX][gridPosY].isNew){
-            //     let newTileVO = this._gameModel.boardMap[gridPosX][gridPosY];
-            //     // this._gameView.dropNewTile(newTileVO);
-            // }
+        // else if (this._matchDetector.findAnyPotentialSwap().length > 0)
+        //     this._gameView.allowSwipe(true);
+        // else {
+        //     let tilesToDestroy = [new Point(Math.random() * this._gameModel.columnsTotal, Math.random() * this._gameModel.rowsTotal)];
+        //     this.moveColumns(tilesToDestroy);
+        //     this._gameView.destroyTiles();
+        // }
     }
 
     onNewTileDropped(newTileVO){
@@ -209,34 +215,12 @@ export default class Controller {
 
     resize(){
         this._app.renderer.resize(window.innerWidth, window.innerHeight);
-        // var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        // var iwidth = (iOS) ? screen.width : window.innerWidth, iheight = (iOS) ? screen.height : window.innerHeight;
 
         let ratio = window.innerWidth / this._gameModel.BACKGROUND_WIDTH;
-        // if (window.innerWidth < this._gameView.safeZoneWidth)
-        //     ratio = window.innerWidth / 1280;
-        // ratio = window.innerWidth / 1280;
-            // this._app.stage.scale.x = this._app.stage.scale.y = ratio;
-
-
-        // if (window.innerWidth > 1280)
-        //     ratio = window.innerWidth / 1280;
-            // this._app.stage.scale.x = this._app.stage.scale.y = ratio;
 
         this._app.stage.scale.x = this._app.stage.scale.y = ratio;
 
         this._app.renderer.view.style.position = 'absolute';
-
-        // this._tutorial.resize();
-
-        // this._app.renderer.view.style.left = 0;
-        // this._app.renderer.view.style.top = 0;
-        // this._app.renderer.view.style.left = ((window.innerWidth - this._app.renderer.width) >> 1) + 'px';
-
-        // this._gameView.onResize(ratio);
-
-        // alert(ratio);
-
     }
 
     get isGamefieldStatic(){

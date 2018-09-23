@@ -120,6 +120,41 @@ export default class GameView extends PIXI.Container{
         }
     }
 
+    createLink(){
+        this.element = document.createElement('a');
+        this.element.target = '_blank';
+
+        this.element.href = this._gameModel.APP_STORE_URL;
+
+        let linkText = new PIXI.Text('Tap to open Apple Store', new PIXI.TextStyle({
+            fontFamily: 'Arial',
+            fontSize: 25,
+            fontWeight: 'bold',
+            fill: ['#ffffff'],
+            dropShadow: true,
+            dropShadowColor: '#044335',
+            dropShadowBlur: 1,
+            dropShadowDistance: 1,
+            strokeThickness: 4,
+        }));
+
+        linkText.anchor.x = 0.5;
+        linkText.x = this._backgroundContainer.width/2;
+        linkText.y = this._fieldContainer.y + 500;
+        linkText.interactive = true;
+        linkText.on('pointerdown', this.onLinkClick.bind(this));
+
+        this.addChild(linkText);
+
+    }
+
+    onLinkClick(){
+        let e = window.document.createEvent("MouseEvents");
+        e.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+        this.element.dispatchEvent(e);
+
+    }
+
     onTileClicked(event){
         this._lastTileClicked = event.currentTarget;
         console.log("TILE CLICKED - index:", this._lastTileClicked.index, "gridPosX=", this._lastTileClicked.gridPositionX, "gridPosY=", this._lastTileClicked.gridPositionY);
@@ -441,37 +476,37 @@ export default class GameView extends PIXI.Container{
     //     }
     // }
 
-    onResize(ratio){
-        // this._appView.renderer.resize(window.innerWidth, window.innerHeight);
-        // this._backgroundContainer.width = this._appView.width;
-        // this._backgroundContainer.height = this._appView.height;
-        let screenWidth = this._appView.width;
-        let screenHeight = this._appView.height;
-
-        var imageRatio = 1280 / 1080;
-        var screenRatio = screenWidth / screenHeight;
-        let scale;
-        if(screenRatio >= imageRatio) {
-            // scale = screenHeight / this._backgroundContainer.height;
-            scale = screenWidth / 1280;
-            // imageSprite.height = imageSprite.height / (imageSprite.width / containerWidth);
-            // imageSprite.width = containerWidth;
-            // imageSprite.position.x = 0;
-            // imageSprite.position.y = (containerHeight - imageSprite.height) / 2;
-        }else{
-            // imageSprite.width = imageSprite.width / (imageSprite.height / containerHeight);
-            // imageSprite.height = containerHeight;
-            // imageSprite.position.y = 0;
-            // imageSprite.position.x = (containerWidth - imageSprite.width) / 2;
-            scale = screenHeight / 1080;
-            // scale = screenWidth / this._backgroundContainer.width;
-        }
-
-        scale = screenRatio > 1 ? this._appView.renderer.height/500 : this._appView.renderer.width/500;
-
-        // this._backgroundContainer.scale.x = this._backgroundContainer.scale.y = scale/ratio;
-        this.fieldContainer.scale.x = this.fieldContainer.scale.y = scale;
-    }
+    // onResize(ratio){
+    //     // this._appView.renderer.resize(window.innerWidth, window.innerHeight);
+    //     // this._backgroundContainer.width = this._appView.width;
+    //     // this._backgroundContainer.height = this._appView.height;
+    //     let screenWidth = this._appView.width;
+    //     let screenHeight = this._appView.height;
+    //
+    //     var imageRatio = 1280 / 1080;
+    //     var screenRatio = screenWidth / screenHeight;
+    //     let scale;
+    //     if(screenRatio >= imageRatio) {
+    //         // scale = screenHeight / this._backgroundContainer.height;
+    //         scale = screenWidth / 1280;
+    //         // imageSprite.height = imageSprite.height / (imageSprite.width / containerWidth);
+    //         // imageSprite.width = containerWidth;
+    //         // imageSprite.position.x = 0;
+    //         // imageSprite.position.y = (containerHeight - imageSprite.height) / 2;
+    //     }else{
+    //         // imageSprite.width = imageSprite.width / (imageSprite.height / containerHeight);
+    //         // imageSprite.height = containerHeight;
+    //         // imageSprite.position.y = 0;
+    //         // imageSprite.position.x = (containerWidth - imageSprite.width) / 2;
+    //         scale = screenHeight / 1080;
+    //         // scale = screenWidth / this._backgroundContainer.width;
+    //     }
+    //
+    //     scale = screenRatio > 1 ? this._appView.renderer.height/500 : this._appView.renderer.width/500;
+    //
+    //     // this._backgroundContainer.scale.x = this._backgroundContainer.scale.y = scale/ratio;
+    //     this.fieldContainer.scale.x = this.fieldContainer.scale.y = scale;
+    // }
 
     get cellWidth(){
         return this._cellWidth;

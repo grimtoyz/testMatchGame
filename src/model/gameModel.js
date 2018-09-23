@@ -76,4 +76,8 @@ export default class GameModel {
     get BACKGROUND_HEIGHT(){
         return 1024;
     }
+
+    get APP_STORE_URL(){
+        return 'https://itunes.apple.com/us/app/fruit-link-match-3-free-game/id1128834660?mt=8'
+    }
 }
