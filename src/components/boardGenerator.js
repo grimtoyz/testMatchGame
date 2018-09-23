@@ -44,7 +44,6 @@ export default class BoardGenerator{
 
         column.forEach(function(item, index) {
             item.movementDelta = index;
-            // console.log(index);
         });
 
         let destroyedTiles = column.filter(tileVO => tileVO.isNew == true);

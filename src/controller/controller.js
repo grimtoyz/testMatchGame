@@ -136,14 +136,34 @@ export default class Controller {
                     tileVO.gridPosX = c;
                     tileVO.gridPosY = r;
                     tilesToSink.push(tileVO);
-                    if (tileVO.isNew)
-                        newTileVOs.push(tileVO);
+                    // if (tileVO.isNew)
+                    //     newTileVOs.push(tileVO);
                 }
+                if (tileVO.isNew){
+                    tileVO.gridPosX = c;
+                    tileVO.gridPosY = r;
+                    newTileVOs.push(tileVO);
+                    // tilesToSink.push(tileVO);
+                }
+
             }
         }
 
-        this._gameView.sinkTiles(tilesToSink);
+        if(tilesToSink.length == 0 && newTileVOs.length != 0){
+            newTileVOs.forEach(function (newTileVO) {
+                this._gameView.dropNewTile(newTileVO);
+            }.bind(this));
+        }
+        else
+            this._gameView.sinkTiles(tilesToSink, newTileVOs);
         // this._gameView.dropNewTiles(newTileVOs);
+        // if(tilesToSink.length == 0 && newTileVOs.length != 0){
+        //     newTileVOs.forEach(function (newTileVO) {
+        //         // this._gameView.onTileSank(newTileVO, 0);
+        //         this.onTileSinkingComplete(newTileVO.gridPosX, newTileVO.gridPosY);
+        //     }.bind(this));
+        // }
+
     }
 
     onSwapCanceled(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY){
@@ -177,6 +197,18 @@ export default class Controller {
     onNewTileDropped(newTileVO){
         this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY].isSwappable = true;
         this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY].isNew = false;
+
+        let matches = this._matchDetector.detectMatchesAroundTile(newTileVO.gridPosX, newTileVO.gridPosY);
+        if (matches.length > 0){
+            this.moveColumns(matches);
+            this._gameView.destroyTiles(matches);
+        }
+        else{
+            if (this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY].isNew){
+                let newTileVO = this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY];
+                this._gameView.dropNewTile(newTileVO);
+            }
+        }
     }
 
     // moveColumns(tilesToDestroy){

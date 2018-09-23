@@ -20,6 +20,7 @@ export default class GameTile extends PIXI.Container{
 
     updateTexture(index){
         this._sprite.texture = PIXI.Texture.fromImage(`symbol0${index}.png`);
+        this._index = index;
     }
 
     get gridPositionX(){
