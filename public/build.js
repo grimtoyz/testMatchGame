@@ -52496,6 +52496,7 @@ var Controller = function () {
             this._gameView.onTileDestroyedAnimationComplete(this.onTileDestroyed.bind(this));
             this._gameView.onSwapCancelAnimationFinished(this.onSwapCanceled.bind(this));
             this._gameView.onTileSinkingAnimComplete(this.onTileSinkingComplete.bind(this));
+            this._gameView.onNewTileDropped(this.onNewTileDropped.bind(this));
         }
     }, {
         key: "onFieldReady",
@@ -52597,28 +52598,22 @@ var Controller = function () {
         value: function onTileSinkingComplete(gridPosX, gridPosY) {
             if (!this._gameModel.boardMap[gridPosX][gridPosY].isNew) this._gameModel.boardMap[gridPosX][gridPosY].isSwappable = true;
 
-            // let matches = this._matchDetector.detectMatchesAroundTile(gridPosX, gridPosY);
-            // if (matches.length > 0){
-            //     this.moveColumns(matches);
-            //     this._gameView.destroyTiles(matches);
-            // }
-            // else{
-            //     let newTileVOs = new Array();
-            //     for (let c = 0; c < this._gameModel.columnsTotal; c++)
-            //     {
-            //         for (let r = 0; r < this._gameModel.rowsTotal; r++){
-            //             let tileVO = this._gameModel.boardMap[c][r];
-            //             if (tileVO.movementDelta != 0){
-            //                 tileVO.isSwappable = false;
-            //                 tileVO.gridPosX = c;
-            //                 tileVO.gridPosY = r;
-            //                 if (tileVO.isNew)
-            //                     newTileVOs.push(tileVO);
-            //             }
-            //         }
-            //     }
-            //     this._gameView.dropNewTiles(newTileVOs);
-            // }
+            var matches = this._matchDetector.detectMatchesAroundTile(gridPosX, gridPosY);
+            if (matches.length > 0) {
+                this.moveColumns(matches);
+                this._gameView.destroyTiles(matches);
+            } else {
+                if (this._gameModel.boardMap[gridPosX][gridPosY].isNew) {
+                    var newTileVO = this._gameModel.boardMap[gridPosX][gridPosY];
+                    this._gameView.dropNewTile(newTileVO);
+                }
+            }
+        }
+    }, {
+        key: "onNewTileDropped",
+        value: function onNewTileDropped(newTileVO) {
+            this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY].isSwappable = true;
+            this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY].isNew = false;
         }
 
         // moveColumns(tilesToDestroy){
@@ -53231,49 +53226,28 @@ var GameView = function (_PIXI$Container) {
             this.fieldReady = callback;
         }
     }, {
-        key: "dropNewTiles",
-        value: function dropNewTiles(newTileVOs) {
-            for (var i = 0; i < newTileVOs.length; i++) {
-                var tile = this._tiles[newTileVOs[i].gridPosX][newTileVOs[i].gridPosY];
-                tile.y -= this._gameModel.tileDropHeight;
-                tile.alpha = 1;
+        key: "dropNewTile",
+        value: function dropNewTile(newTileVO) {
+            var tile = this._tiles[newTileVO.gridPosX][newTileVO.gridPosY];
+            tile.y -= this._gameModel.tileDropHeight;
+            tile.alpha = 1;
 
-                _TweenMax2.default.to(tile, this._gameModel.tileDropDuration * 10, { ease: Bounce.easeOut, delay: i * this._gameModel.tileDropDelay, y: tile.y + this._gameModel.tileDropHeight //,
-                    // onComplete: this.onAllTweensCompleted.bind(this)}
-                });
-            }
-
-            // let i;
-            // for (i=0; i < tileToDropPositions.length; i++){
-            //     // let position = tileToDropPositions[i];
-            //     // this._droppedTileVOs.push(position);
-            //     let c = tileToDropPositions[i].x;
-            //     let r = tileToDropPositions[i].y;
-            //
-            //     this._tiles[c][r].updateTexture(this._gameModel.boardMap[c][r].index);
-            //
-            //     // this._activeDropTweensAmount ++;
-            //     // TweenMax.to(
-            //     //     this._tiles[position.x][position.y], this._gameModel.tileDropDuration,
-            //     //     {ease:Bounce.easeOut, delay:i*this._gameModel.tileDropDelay, y:this._tiles[vo.gridPositionX][vo.gridPositionY].y + this._gameModel.tileDropHeight,
-            //     //         onComplete: this.onTweenCompleted.bind(this)}
-            //     // );
-            //     this._tiles[c][r].y -= this._gameModel.tileDropHeight;
-            //     this._tiles[c][r].alpha = 1;
-            //
-            //     TweenMax.to(
-            //         this._tiles[c][r], this._gameModel.tileDropDuration,
-            //         {ease:Bounce.easeOut, delay:i*this._gameModel.tileDropDelay, y:this._tiles[c][r].y + this._gameModel.tileDropHeight}//,
-            //             // onComplete: this.onAllTweensCompleted.bind(this)}
-            //     );
-            // }
+            _TweenMax2.default.to(tile, this._gameModel.tileDropDuration, { ease: Back.easeOut, delay: this._gameModel.tileDropDelay, y: tile.y + this._gameModel.tileDropHeight,
+                onCompleteParams: [newTileVO],
+                onComplete: this.onNewTileDropped.bind(this) });
         }
     }, {
-        key: "onTweenCompleted",
-        value: function onTweenCompleted() {
-            this._activeDropTweensAmount--;
-            if (this._activeDropTweensAmount == 0) alert("complete");
+        key: "onNewTileDropped",
+        value: function onNewTileDropped(callback) {
+            this.onNewTileDropped = callback;
         }
+
+        // onTweenCompleted(){
+        //     this._activeDropTweensAmount --;
+        //     if (this._activeDropTweensAmount == 0)
+        //         alert("complete");
+        // }
+
     }, {
         key: "tilesDropped",
         value: function tilesDropped() {}

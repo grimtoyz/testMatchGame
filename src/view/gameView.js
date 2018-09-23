@@ -329,51 +329,28 @@ export default class GameView extends PIXI.Container{
         this.fieldReady = callback;
     }
 
-    dropNewTiles(newTileVOs){
-        for (let i = 0; i < newTileVOs.length; i++)
-        {
-            let tile = this._tiles[newTileVOs[i].gridPosX][newTileVOs[i].gridPosY];
-            tile.y -= this._gameModel.tileDropHeight;
-            tile.alpha = 1;
+    dropNewTile(newTileVO){
+        let tile = this._tiles[newTileVO.gridPosX][newTileVO.gridPosY];
+        tile.y -= this._gameModel.tileDropHeight;
+        tile.alpha = 1;
 
-            TweenMax.to(
-                tile, this._gameModel.tileDropDuration * 10,
-                {ease:Bounce.easeOut, delay:i*this._gameModel.tileDropDelay, y:tile.y + this._gameModel.tileDropHeight}//,
-                // onComplete: this.onAllTweensCompleted.bind(this)}
-            );
-        }
-
-        // let i;
-        // for (i=0; i < tileToDropPositions.length; i++){
-        //     // let position = tileToDropPositions[i];
-        //     // this._droppedTileVOs.push(position);
-        //     let c = tileToDropPositions[i].x;
-        //     let r = tileToDropPositions[i].y;
-        //
-        //     this._tiles[c][r].updateTexture(this._gameModel.boardMap[c][r].index);
-        //
-        //     // this._activeDropTweensAmount ++;
-        //     // TweenMax.to(
-        //     //     this._tiles[position.x][position.y], this._gameModel.tileDropDuration,
-        //     //     {ease:Bounce.easeOut, delay:i*this._gameModel.tileDropDelay, y:this._tiles[vo.gridPositionX][vo.gridPositionY].y + this._gameModel.tileDropHeight,
-        //     //         onComplete: this.onTweenCompleted.bind(this)}
-        //     // );
-        //     this._tiles[c][r].y -= this._gameModel.tileDropHeight;
-        //     this._tiles[c][r].alpha = 1;
-        //
-        //     TweenMax.to(
-        //         this._tiles[c][r], this._gameModel.tileDropDuration,
-        //         {ease:Bounce.easeOut, delay:i*this._gameModel.tileDropDelay, y:this._tiles[c][r].y + this._gameModel.tileDropHeight}//,
-        //             // onComplete: this.onAllTweensCompleted.bind(this)}
-        //     );
-        // }
+        TweenMax.to(
+            tile, this._gameModel.tileDropDuration,
+            {ease:Back.easeOut, delay:this._gameModel.tileDropDelay, y:tile.y + this._gameModel.tileDropHeight,
+            onCompleteParams: [newTileVO],
+            onComplete: this.onNewTileDropped.bind(this)}
+        );
     }
 
-    onTweenCompleted(){
-        this._activeDropTweensAmount --;
-        if (this._activeDropTweensAmount == 0)
-            alert("complete");
+    onNewTileDropped(callback){
+        this.onNewTileDropped = callback;
     }
+
+    // onTweenCompleted(){
+    //     this._activeDropTweensAmount --;
+    //     if (this._activeDropTweensAmount == 0)
+    //         alert("complete");
+    // }
 
     tilesDropped(){
 
