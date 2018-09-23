@@ -97,11 +97,11 @@ export default class GameView extends PIXI.Container{
 
     createTiles(){
         this._tiles = new Array();
-        let c;
-        let r;
-        for (c=0; c < this._gameModel.columnsTotal; c++){
+
+        for (let c = 0; c < this._gameModel.columnsTotal; c++){
             let column = new Array();
-            for (r=0; r < this._gameModel.rowsTotal; r++){
+
+            for (let r = 0; r < this._gameModel.rowsTotal; r++){
                 let index = this._gameModel.boardMap[c][r].index;
                 let tile = new GameTile(index, c, r);
 
@@ -115,15 +115,6 @@ export default class GameView extends PIXI.Container{
                 column.push(tile);
             }
             this._tiles.push(column);
-        }
-
-        // let r;
-        let gridPosX = 0;
-        console.log("  INITIAL             ");
-        for (r=0; r < this._gameModel.rowsTotal; r++)
-        {
-            // console.log(this._gameModel.boardMap[gridPosX][r].index, this._tiles[gridPosX][r].index, "x,y:"+this._tiles[gridPosX][r].gridPositionX+","+this._tiles[gridPosX][r].gridPositionY);
-            console.log(this._gameModel.boardMap[gridPosX][r].index, this._tiles[gridPosX][r].index, "x,y:"+this._tiles[gridPosX][r].gridPositionX+","+this._tiles[gridPosX][r].gridPositionY, "    ", this._gameModel.boardMap[gridPosX+1][r].index, this._tiles[gridPosX+1][r].index, "x,y:"+this._tiles[gridPosX+1][r].gridPositionX+","+this._tiles[gridPosX+1][r].gridPositionY);
         }
     }
 
@@ -141,10 +132,8 @@ export default class GameView extends PIXI.Container{
 
         let neighbour = this.getNeighbour(tile, directionX, directionY);
 
-        if (this.isTileSwappable(tile.gridPositionX, tile.gridPositionY) && this.isTileSwappable(neighbour.gridPositionX, neighbour.gridPositionY)){
-            // this.swapStart(tile, neighbour);
+        if (this.isTileSwappable(tile.gridPositionX, tile.gridPositionY) && this.isTileSwappable(neighbour.gridPositionX, neighbour.gridPositionY))
             this.onTileSwapAttempted(tile.gridPositionX, tile.gridPositionY, neighbour.gridPositionX, neighbour.gridPositionY);
-        }
     }
 
     isMoveLegit(tile, directionX, directionY){
@@ -209,10 +198,6 @@ export default class GameView extends PIXI.Container{
 
         this.swapTilesData(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY);
 
-        // let tileTemp = this._tiles[tileGridPosX][tileGridPosY];
-        // this._tiles[tileGridPosX][tileGridPosY] = this._tiles[neighbourGridPosX][neighbourGridPosY];
-        // this._tiles[neighbourGridPosX][neighbourGridPosY] = tileTemp;
-
         TweenMax.to(
             tile, this._gameModel.swapDuration,
             {ease:Back.easeOut, x:neighbour.x, y:neighbour.y}
@@ -223,14 +208,6 @@ export default class GameView extends PIXI.Container{
                 onCompleteParams:[tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY, tilesToDestroy, tilesToDestroy], onComplete: this.onSwapAnimationFinished.bind(this)
             }
         );
-
-        // let r;
-        // console.log("  VIEW AFTER START SWAP           ");
-        // let gridPosX = 0;
-        // for (r=0; r < this._gameModel.rowsTotal; r++)
-        // {
-        //     console.log(this._gameModel.boardMap[gridPosX][r].index, this._tiles[gridPosX][r].index, "x,y:"+this._tiles[gridPosX][r].gridPositionX+","+this._tiles[gridPosX][r].gridPositionY, "    ", this._gameModel.boardMap[gridPosX+1][r].index, this._tiles[gridPosX+1][r].index, "x,y:"+this._tiles[gridPosX+1][r].gridPositionX+","+this._tiles[gridPosX+1][r].gridPositionY);
-        // }
     }
 
     onSwapAnimationFinished(callback){
@@ -246,16 +223,13 @@ export default class GameView extends PIXI.Container{
     }
 
     destroyTiles(tilesToDestroy){
-        let i;
-
-        for (i=0; i<tilesToDestroy.length; i++)
+        for (let i = 0; i < tilesToDestroy.length; i++)
         {
             let tileGridPosX = tilesToDestroy[i].x;
             let tileGridPosY = tilesToDestroy[i].y;
 
             TweenMax.to(
                 this._tiles[tileGridPosX][tileGridPosY], this.TILE_FADE_OUT_DURATION,
-                // {ease:Bounce.easeIn, alpha:0.2, y:tile.y + posDeltaY * this._cellHeight,
                 {ease:Bounce.easeIn, alpha:0.2,
                 // onCompleteParams:[tilesToDestroy, topTiles, offsetY], onComplete: this.onTileDestroyed.bind(this)}
                 onComplete: this.onTileDestroyedAnimationComplete.bind(this)}
@@ -267,24 +241,44 @@ export default class GameView extends PIXI.Container{
         this.onTileDestroyedAnimationComplete = callback;
     }
 
-    sinkTiles(tilesToSink){
+    sinkTiles(tilesToSink, newTileVOs){
         tilesToSink.forEach(function (tileVO) {
             let posDeltaY = tileVO.movementDelta;
             let tile = this._tiles[tileVO.gridPosX][tileVO.gridPosY - posDeltaY];
 
-            TweenMax.to(
-                tile, this._gameModel._tileDropDuration,
-                {ease:Back.easeOut, y:tile.y + posDeltaY*this._cellHeight,
-                    onCompleteParams: [tile, posDeltaY],
-                    onComplete: this.onTileSank.bind(this)
-                }
-            );
+            // this._tiles[tile.gridPositionX][tile.gridPositionY + posDeltaY] = tile;
+            // this._tiles[tile.gridPositionX][tile.gridPositionY + posDeltaY].gridPositionY += posDeltaY;
+            //
+            // if (this._gameModel.boardMap[tile.gridPositionX][tile.gridPositionY].isNew)
+            //     tile.updateTexture(this._gameModel.boardMap[tile.gridPositionX][tile.gridPositionY].index);
+
+            // if (tileVO.isNew)
+            // {
+            //     // tile.y += posDeltaY*this._cellHeight;
+            //     this.onTileSank(tile, posDeltaY);
+            // }
+            // else
+            let dur= this._gameModel._tileDropDuration * 2;
+            if (tileVO.isNew)
+                dur = 0.1;
+
+                TweenMax.to(
+                    // tile, this._gameModel._tileDropDuration * 10,
+                    tile, dur,
+                    {ease:Back.easeOut, y:tile.y + posDeltaY*this._cellHeight,
+                        onCompleteParams: [tile, posDeltaY, newTileVOs],
+                        onComplete: this.onTileSank.bind(this)
+                    }
+                );
         }.bind(this));
     }
 
     onTileSank(tile, posDeltaY){
         this._tiles[tile.gridPositionX][tile.gridPositionY + posDeltaY] = tile;
         this._tiles[tile.gridPositionX][tile.gridPositionY + posDeltaY].gridPositionY += posDeltaY;
+
+        if (this._gameModel.boardMap[tile.gridPositionX][tile.gridPositionY].isNew)
+            tile.updateTexture(this._gameModel.boardMap[tile.gridPositionX][tile.gridPositionY].index);
 
         this.onTileSinkingAnimComplete(tile.gridPositionX, tile.gridPositionY);
     }
@@ -314,11 +308,6 @@ export default class GameView extends PIXI.Container{
     }
 
     swapTilesData(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY){
-        // console.log ("before swapping tile data:", "tile at", tileGridPosX + ",", tileGridPosY);
-        // console.log ("index", this._tiles[tileGridPosX][tileGridPosY].index, "posX, posY:", this._tiles[tileGridPosX][tileGridPosY].gridPositionX, this._tiles[tileGridPosX][tileGridPosY].gridPositionY);
-        // console.log ("before swapping tile data:", "tile at", neighbourGridPosX + ",", neighbourGridPosY);
-        // console.log ("index", this._tiles[neighbourGridPosX][neighbourGridPosY].index, "posX, posY:", this._tiles[neighbourGridPosX][neighbourGridPosY].gridPositionX, this._tiles[neighbourGridPosX][neighbourGridPosY].gridPositionY);
-
         let tileTemp = this._tiles[tileGridPosX][tileGridPosY];
         this._tiles[tileGridPosX][tileGridPosY] = this._tiles[neighbourGridPosX][neighbourGridPosY];
         this._tiles[neighbourGridPosX][neighbourGridPosY] = tileTemp;
@@ -328,11 +317,6 @@ export default class GameView extends PIXI.Container{
 
         this._tiles[neighbourGridPosX][neighbourGridPosY].gridPositionX = neighbourGridPosX;
         this._tiles[neighbourGridPosX][neighbourGridPosY].gridPositionY = neighbourGridPosY;
-
-        // console.log ("after swapping tile data:", "tile at", tileGridPosX + ",", tileGridPosY);
-        // console.log ("index", this._tiles[tileGridPosX][tileGridPosY].index, "posX, posY:", this._tiles[tileGridPosX][tileGridPosY].gridPositionX, this._tiles[tileGridPosX][tileGridPosY].gridPositionY);
-        // console.log ("after swapping tile data:", "tile at", neighbourGridPosX + ",", neighbourGridPosY);
-        // console.log ("index", this._tiles[neighbourGridPosX][neighbourGridPosY].index, "posX, posY:", this._tiles[neighbourGridPosX][neighbourGridPosY].gridPositionX, this._tiles[neighbourGridPosX][neighbourGridPosY].gridPositionY);
     }
 
     onAllTweensCompleted(){
@@ -345,54 +329,44 @@ export default class GameView extends PIXI.Container{
         this.fieldReady = callback;
     }
 
-    dropNewTiles(tileToDropPositions){
-        // let c;
-        // let r;
-        // let i;
-        // for (i=0; i<tileToDropPositions.length; i++){
-        //
-        // }
-        // this._activeDropTweensAmount = 0;
-        // this._droppedTileVOs = new Array();
-
-        // for (c=0; c < this._gameModel.columnsTotal; c++){
-        //     for (r=0; r < this._gameModel.rowsTotal; r++){
-        //         if (this._gameModel.boardMap[c][r].isNew){
-        //             this._droppedTileVOs.push(this._gameModel.boardMap[c][r]);
-        //             this._activeDropTweensAmount ++;
-        //             TweenMax.to(
-        //                 this._tiles[c][r], this._gameModel.tileDropDuration,
-        //                 {ease:Bounce.easeOut, delay:(c + r)*this._gameModel.tileDropDelay, y:this._tiles[c][r].y + this._gameModel.tileDropHeight,
-        //                     onComplete: this.onTweenCompleted.bind(this)}
-        //                 );
-        //         }
-        //     }
-        // }
-
-        let i;
-        for (i=0; i < tileToDropPositions.length; i++){
-            // let position = tileToDropPositions[i];
-            // this._droppedTileVOs.push(position);
-            let c = tileToDropPositions[i].x;
-            let r = tileToDropPositions[i].y;
-
-            this._tiles[c][r].updateTexture(this._gameModel.boardMap[c][r].index);
-
-            // this._activeDropTweensAmount ++;
-            // TweenMax.to(
-            //     this._tiles[position.x][position.y], this._gameModel.tileDropDuration,
-            //     {ease:Bounce.easeOut, delay:i*this._gameModel.tileDropDelay, y:this._tiles[vo.gridPositionX][vo.gridPositionY].y + this._gameModel.tileDropHeight,
-            //         onComplete: this.onTweenCompleted.bind(this)}
-            // );
-            this._tiles[c][r].y -= this._gameModel.tileDropHeight;
-            this._tiles[c][r].alpha = 1;
+    dropNewTiles(newTileVOs){
+        for (let i = 0; i < newTileVOs.length; i++)
+        {
+            let tile = this._tiles[newTileVOs[i].gridPosX][newTileVOs[i].gridPosY];
+            tile.y -= this._gameModel.tileDropHeight;
+            tile.alpha = 1;
 
             TweenMax.to(
-                this._tiles[c][r], this._gameModel.tileDropDuration,
-                {ease:Bounce.easeOut, delay:i*this._gameModel.tileDropDelay, y:this._tiles[c][r].y + this._gameModel.tileDropHeight}//,
-                    // onComplete: this.onAllTweensCompleted.bind(this)}
+                tile, this._gameModel.tileDropDuration * 10,
+                {ease:Bounce.easeOut, delay:i*this._gameModel.tileDropDelay, y:tile.y + this._gameModel.tileDropHeight}//,
+                // onComplete: this.onAllTweensCompleted.bind(this)}
             );
         }
+
+        // let i;
+        // for (i=0; i < tileToDropPositions.length; i++){
+        //     // let position = tileToDropPositions[i];
+        //     // this._droppedTileVOs.push(position);
+        //     let c = tileToDropPositions[i].x;
+        //     let r = tileToDropPositions[i].y;
+        //
+        //     this._tiles[c][r].updateTexture(this._gameModel.boardMap[c][r].index);
+        //
+        //     // this._activeDropTweensAmount ++;
+        //     // TweenMax.to(
+        //     //     this._tiles[position.x][position.y], this._gameModel.tileDropDuration,
+        //     //     {ease:Bounce.easeOut, delay:i*this._gameModel.tileDropDelay, y:this._tiles[vo.gridPositionX][vo.gridPositionY].y + this._gameModel.tileDropHeight,
+        //     //         onComplete: this.onTweenCompleted.bind(this)}
+        //     // );
+        //     this._tiles[c][r].y -= this._gameModel.tileDropHeight;
+        //     this._tiles[c][r].alpha = 1;
+        //
+        //     TweenMax.to(
+        //         this._tiles[c][r], this._gameModel.tileDropDuration,
+        //         {ease:Bounce.easeOut, delay:i*this._gameModel.tileDropDelay, y:this._tiles[c][r].y + this._gameModel.tileDropHeight}//,
+        //             // onComplete: this.onAllTweensCompleted.bind(this)}
+        //     );
+        // }
     }
 
     onTweenCompleted(){

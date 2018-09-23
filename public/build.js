@@ -52520,18 +52520,33 @@ var Controller = function () {
             if (matches.length > 0 || matchesNeighbour.length > 0) {
                 var tilesToDestroy = matches.concat(matchesNeighbour);
 
-                for (var i = 0; i < tilesToDestroy.length; i++) {
-                    var x = tilesToDestroy[i].x;
-                    var y = tilesToDestroy[i].y;
-                    this._gameModel.boardMap[x][y] = this._boardGenerator.generateRandomTileVO();
-                }
+                this.moveColumns(tilesToDestroy);
 
-                for (var _i = 0; _i < this._gameModel.columnsTotal; _i++) {
-                    this._gameModel.boardMap[_i] = this._boardGenerator.moveDestroyedTilesToTop(this._gameModel.boardMap[_i]);
-                }
+                // for (let i = 0; i < tilesToDestroy.length; i++){
+                //     let x = tilesToDestroy[i].x;
+                //     let y = tilesToDestroy[i].y;
+                //     this._gameModel.boardMap[x][y] = this._boardGenerator.generateRandomTileVO();
+                // }
+                //
+                // for (let i=0; i < this._gameModel.columnsTotal; i++){
+                //     this._gameModel.boardMap[i] = this._boardGenerator.moveDestroyedTilesToTop(this._gameModel.boardMap[i]);
+                // }
 
                 this._gameView.swapStart(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY, tilesToDestroy);
             } else this._gameView.swapCancel(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY);
+        }
+    }, {
+        key: "moveColumns",
+        value: function moveColumns(tilesToDestroy) {
+            for (var i = 0; i < tilesToDestroy.length; i++) {
+                var x = tilesToDestroy[i].x;
+                var y = tilesToDestroy[i].y;
+                this._gameModel.boardMap[x][y] = this._boardGenerator.generateRandomTileVO();
+            }
+
+            for (var _i = 0; _i < this._gameModel.columnsTotal; _i++) {
+                this._gameModel.boardMap[_i] = this._boardGenerator.moveDestroyedTilesToTop(this._gameModel.boardMap[_i]);
+            }
         }
     }, {
         key: "onTilesSwapped",
@@ -52547,6 +52562,7 @@ var Controller = function () {
         key: "onTileDestroyed",
         value: function onTileDestroyed() {
             var tilesToSink = new Array();
+            var newTileVOs = new Array();
 
             for (var c = 0; c < this._gameModel.columnsTotal; c++) {
                 for (var r = 0; r < this._gameModel.rowsTotal; r++) {
@@ -52555,12 +52571,14 @@ var Controller = function () {
                         tileVO.isSwappable = false;
                         tileVO.gridPosX = c;
                         tileVO.gridPosY = r;
-                        if (!tileVO.isNew) tilesToSink.push(tileVO);
+                        tilesToSink.push(tileVO);
+                        if (tileVO.isNew) newTileVOs.push(tileVO);
                     }
                 }
             }
 
             this._gameView.sinkTiles(tilesToSink);
+            // this._gameView.dropNewTiles(newTileVOs);
         }
     }, {
         key: "onSwapCanceled",
@@ -52577,39 +52595,44 @@ var Controller = function () {
     }, {
         key: "onTileSinkingComplete",
         value: function onTileSinkingComplete(gridPosX, gridPosY) {
-            this._gameModel.boardMap[gridPosX][gridPosY].isSwappable = true;
-            this._gameModel.boardMap[gridPosX][gridPosY].isNew = false;
-
-            // this._gameModel.boardMap[gridPosX][gridPosY + offsetY].isSwappable = true;
-            // this._gameModel.boardMap[gridPosX][gridPosY + offsetY].isNew = false;
-
-
-            // this._gameModel.boardMap[gridPosX][gridPosY].isSwappable = true;
-            // this._gameModel.boardMap[gridPosX][gridPosY].isNew = false;
-
-            // this._gameModel.boardMap[gridPosX][gridPosY + offsetY] = this._gameModel.boardMap[gridPosX][gridPosY];
-
+            if (!this._gameModel.boardMap[gridPosX][gridPosY].isNew) this._gameModel.boardMap[gridPosX][gridPosY].isSwappable = true;
 
             // let matches = this._matchDetector.detectMatchesAroundTile(gridPosX, gridPosY);
-            //
             // if (matches.length > 0){
-            //     let tilesToDestroy = new Array();
-            //     let i;
-            //     for (i=0; i<matches.length; i++)
-            //     {
-            //         tilesToDestroy.push(matches[i]);
-            //     }
-            //
-            //     for(i=0; i<tilesToDestroy.length; i++){
-            //         let x = tilesToDestroy[i].x;
-            //         let y = tilesToDestroy[i].y;
-            //         this._gameModel.boardMap[x][y] = this._boardGenerator.generateRandomTileVO();
-            //     }
-            //
-            //     this._gameView.destroyTiles(tilesToDestroy);
+            //     this.moveColumns(matches);
+            //     this._gameView.destroyTiles(matches);
             // }
-
+            // else{
+            //     let newTileVOs = new Array();
+            //     for (let c = 0; c < this._gameModel.columnsTotal; c++)
+            //     {
+            //         for (let r = 0; r < this._gameModel.rowsTotal; r++){
+            //             let tileVO = this._gameModel.boardMap[c][r];
+            //             if (tileVO.movementDelta != 0){
+            //                 tileVO.isSwappable = false;
+            //                 tileVO.gridPosX = c;
+            //                 tileVO.gridPosY = r;
+            //                 if (tileVO.isNew)
+            //                     newTileVOs.push(tileVO);
+            //             }
+            //         }
+            //     }
+            //     this._gameView.dropNewTiles(newTileVOs);
+            // }
         }
+
+        // moveColumns(tilesToDestroy){
+        //     for (let i = 0; i < tilesToDestroy.length; i++){
+        //         let x = tilesToDestroy[i].x;
+        //         let y = tilesToDestroy[i].y;
+        //         this._gameModel.boardMap[x][y] = this._boardGenerator.generateRandomTileVO();
+        //     }
+        //
+        //     for (let i=0; i < this._gameModel.columnsTotal; i++){
+        //         this._gameModel.boardMap[i] = this._boardGenerator.moveDestroyedTilesToTop(this._gameModel.boardMap[i]);
+        //     }
+        // }
+
     }, {
         key: "setAllTilesToSwappable",
         value: function setAllTilesToSwappable() {
@@ -52989,11 +53012,11 @@ var GameView = function (_PIXI$Container) {
         key: "createTiles",
         value: function createTiles() {
             this._tiles = new Array();
-            var c = void 0;
-            var r = void 0;
-            for (c = 0; c < this._gameModel.columnsTotal; c++) {
+
+            for (var c = 0; c < this._gameModel.columnsTotal; c++) {
                 var column = new Array();
-                for (r = 0; r < this._gameModel.rowsTotal; r++) {
+
+                for (var r = 0; r < this._gameModel.rowsTotal; r++) {
                     var index = this._gameModel.boardMap[c][r].index;
                     var tile = new _gameTile2.default(index, c, r);
 
@@ -53007,14 +53030,6 @@ var GameView = function (_PIXI$Container) {
                     column.push(tile);
                 }
                 this._tiles.push(column);
-            }
-
-            // let r;
-            var gridPosX = 0;
-            console.log("  INITIAL             ");
-            for (r = 0; r < this._gameModel.rowsTotal; r++) {
-                // console.log(this._gameModel.boardMap[gridPosX][r].index, this._tiles[gridPosX][r].index, "x,y:"+this._tiles[gridPosX][r].gridPositionX+","+this._tiles[gridPosX][r].gridPositionY);
-                console.log(this._gameModel.boardMap[gridPosX][r].index, this._tiles[gridPosX][r].index, "x,y:" + this._tiles[gridPosX][r].gridPositionX + "," + this._tiles[gridPosX][r].gridPositionY, "    ", this._gameModel.boardMap[gridPosX + 1][r].index, this._tiles[gridPosX + 1][r].index, "x,y:" + this._tiles[gridPosX + 1][r].gridPositionX + "," + this._tiles[gridPosX + 1][r].gridPositionY);
             }
         }
     }, {
@@ -53034,10 +53049,7 @@ var GameView = function (_PIXI$Container) {
 
             var neighbour = this.getNeighbour(tile, directionX, directionY);
 
-            if (this.isTileSwappable(tile.gridPositionX, tile.gridPositionY) && this.isTileSwappable(neighbour.gridPositionX, neighbour.gridPositionY)) {
-                // this.swapStart(tile, neighbour);
-                this.onTileSwapAttempted(tile.gridPositionX, tile.gridPositionY, neighbour.gridPositionX, neighbour.gridPositionY);
-            }
+            if (this.isTileSwappable(tile.gridPositionX, tile.gridPositionY) && this.isTileSwappable(neighbour.gridPositionX, neighbour.gridPositionY)) this.onTileSwapAttempted(tile.gridPositionX, tile.gridPositionY, neighbour.gridPositionX, neighbour.gridPositionY);
         }
     }, {
         key: "isMoveLegit",
@@ -53094,22 +53106,10 @@ var GameView = function (_PIXI$Container) {
 
             this.swapTilesData(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY);
 
-            // let tileTemp = this._tiles[tileGridPosX][tileGridPosY];
-            // this._tiles[tileGridPosX][tileGridPosY] = this._tiles[neighbourGridPosX][neighbourGridPosY];
-            // this._tiles[neighbourGridPosX][neighbourGridPosY] = tileTemp;
-
             _TweenMax2.default.to(tile, this._gameModel.swapDuration, { ease: Back.easeOut, x: neighbour.x, y: neighbour.y });
             _TweenMax2.default.to(neighbour, this._gameModel.swapDuration, { ease: Back.easeOut, x: tile.x, y: tile.y,
                 onCompleteParams: [tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY, tilesToDestroy, tilesToDestroy], onComplete: this.onSwapAnimationFinished.bind(this)
             });
-
-            // let r;
-            // console.log("  VIEW AFTER START SWAP           ");
-            // let gridPosX = 0;
-            // for (r=0; r < this._gameModel.rowsTotal; r++)
-            // {
-            //     console.log(this._gameModel.boardMap[gridPosX][r].index, this._tiles[gridPosX][r].index, "x,y:"+this._tiles[gridPosX][r].gridPositionX+","+this._tiles[gridPosX][r].gridPositionY, "    ", this._gameModel.boardMap[gridPosX+1][r].index, this._tiles[gridPosX+1][r].index, "x,y:"+this._tiles[gridPosX+1][r].gridPositionX+","+this._tiles[gridPosX+1][r].gridPositionY);
-            // }
         }
     }, {
         key: "onSwapAnimationFinished",
@@ -53129,15 +53129,11 @@ var GameView = function (_PIXI$Container) {
     }, {
         key: "destroyTiles",
         value: function destroyTiles(tilesToDestroy) {
-            var i = void 0;
-
-            for (i = 0; i < tilesToDestroy.length; i++) {
+            for (var i = 0; i < tilesToDestroy.length; i++) {
                 var tileGridPosX = tilesToDestroy[i].x;
                 var tileGridPosY = tilesToDestroy[i].y;
 
-                _TweenMax2.default.to(this._tiles[tileGridPosX][tileGridPosY], this.TILE_FADE_OUT_DURATION,
-                // {ease:Bounce.easeIn, alpha:0.2, y:tile.y + posDeltaY * this._cellHeight,
-                { ease: Bounce.easeIn, alpha: 0.2,
+                _TweenMax2.default.to(this._tiles[tileGridPosX][tileGridPosY], this.TILE_FADE_OUT_DURATION, { ease: Bounce.easeIn, alpha: 0.2,
                     // onCompleteParams:[tilesToDestroy, topTiles, offsetY], onComplete: this.onTileDestroyed.bind(this)}
                     onComplete: this.onTileDestroyedAnimationComplete.bind(this) });
             }
@@ -53149,13 +53145,30 @@ var GameView = function (_PIXI$Container) {
         }
     }, {
         key: "sinkTiles",
-        value: function sinkTiles(tilesToSink) {
+        value: function sinkTiles(tilesToSink, newTileVOs) {
             tilesToSink.forEach(function (tileVO) {
                 var posDeltaY = tileVO.movementDelta;
                 var tile = this._tiles[tileVO.gridPosX][tileVO.gridPosY - posDeltaY];
 
-                _TweenMax2.default.to(tile, this._gameModel._tileDropDuration, { ease: Back.easeOut, y: tile.y + posDeltaY * this._cellHeight,
-                    onCompleteParams: [tile, posDeltaY],
+                // this._tiles[tile.gridPositionX][tile.gridPositionY + posDeltaY] = tile;
+                // this._tiles[tile.gridPositionX][tile.gridPositionY + posDeltaY].gridPositionY += posDeltaY;
+                //
+                // if (this._gameModel.boardMap[tile.gridPositionX][tile.gridPositionY].isNew)
+                //     tile.updateTexture(this._gameModel.boardMap[tile.gridPositionX][tile.gridPositionY].index);
+
+                // if (tileVO.isNew)
+                // {
+                //     // tile.y += posDeltaY*this._cellHeight;
+                //     this.onTileSank(tile, posDeltaY);
+                // }
+                // else
+                var dur = this._gameModel._tileDropDuration * 2;
+                if (tileVO.isNew) dur = 0.1;
+
+                _TweenMax2.default.to(
+                // tile, this._gameModel._tileDropDuration * 10,
+                tile, dur, { ease: Back.easeOut, y: tile.y + posDeltaY * this._cellHeight,
+                    onCompleteParams: [tile, posDeltaY, newTileVOs],
                     onComplete: this.onTileSank.bind(this)
                 });
             }.bind(this));
@@ -53165,6 +53178,8 @@ var GameView = function (_PIXI$Container) {
         value: function onTileSank(tile, posDeltaY) {
             this._tiles[tile.gridPositionX][tile.gridPositionY + posDeltaY] = tile;
             this._tiles[tile.gridPositionX][tile.gridPositionY + posDeltaY].gridPositionY += posDeltaY;
+
+            if (this._gameModel.boardMap[tile.gridPositionX][tile.gridPositionY].isNew) tile.updateTexture(this._gameModel.boardMap[tile.gridPositionX][tile.gridPositionY].index);
 
             this.onTileSinkingAnimComplete(tile.gridPositionX, tile.gridPositionY);
         }
@@ -53194,11 +53209,6 @@ var GameView = function (_PIXI$Container) {
     }, {
         key: "swapTilesData",
         value: function swapTilesData(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY) {
-            // console.log ("before swapping tile data:", "tile at", tileGridPosX + ",", tileGridPosY);
-            // console.log ("index", this._tiles[tileGridPosX][tileGridPosY].index, "posX, posY:", this._tiles[tileGridPosX][tileGridPosY].gridPositionX, this._tiles[tileGridPosX][tileGridPosY].gridPositionY);
-            // console.log ("before swapping tile data:", "tile at", neighbourGridPosX + ",", neighbourGridPosY);
-            // console.log ("index", this._tiles[neighbourGridPosX][neighbourGridPosY].index, "posX, posY:", this._tiles[neighbourGridPosX][neighbourGridPosY].gridPositionX, this._tiles[neighbourGridPosX][neighbourGridPosY].gridPositionY);
-
             var tileTemp = this._tiles[tileGridPosX][tileGridPosY];
             this._tiles[tileGridPosX][tileGridPosY] = this._tiles[neighbourGridPosX][neighbourGridPosY];
             this._tiles[neighbourGridPosX][neighbourGridPosY] = tileTemp;
@@ -53208,11 +53218,6 @@ var GameView = function (_PIXI$Container) {
 
             this._tiles[neighbourGridPosX][neighbourGridPosY].gridPositionX = neighbourGridPosX;
             this._tiles[neighbourGridPosX][neighbourGridPosY].gridPositionY = neighbourGridPosY;
-
-            // console.log ("after swapping tile data:", "tile at", tileGridPosX + ",", tileGridPosY);
-            // console.log ("index", this._tiles[tileGridPosX][tileGridPosY].index, "posX, posY:", this._tiles[tileGridPosX][tileGridPosY].gridPositionX, this._tiles[tileGridPosX][tileGridPosY].gridPositionY);
-            // console.log ("after swapping tile data:", "tile at", neighbourGridPosX + ",", neighbourGridPosY);
-            // console.log ("index", this._tiles[neighbourGridPosX][neighbourGridPosY].index, "posX, posY:", this._tiles[neighbourGridPosX][neighbourGridPosY].gridPositionX, this._tiles[neighbourGridPosX][neighbourGridPosY].gridPositionY);
         }
     }, {
         key: "onAllTweensCompleted",
@@ -53227,52 +53232,41 @@ var GameView = function (_PIXI$Container) {
         }
     }, {
         key: "dropNewTiles",
-        value: function dropNewTiles(tileToDropPositions) {
-            // let c;
-            // let r;
-            // let i;
-            // for (i=0; i<tileToDropPositions.length; i++){
-            //
-            // }
-            // this._activeDropTweensAmount = 0;
-            // this._droppedTileVOs = new Array();
+        value: function dropNewTiles(newTileVOs) {
+            for (var i = 0; i < newTileVOs.length; i++) {
+                var tile = this._tiles[newTileVOs[i].gridPosX][newTileVOs[i].gridPosY];
+                tile.y -= this._gameModel.tileDropHeight;
+                tile.alpha = 1;
 
-            // for (c=0; c < this._gameModel.columnsTotal; c++){
-            //     for (r=0; r < this._gameModel.rowsTotal; r++){
-            //         if (this._gameModel.boardMap[c][r].isNew){
-            //             this._droppedTileVOs.push(this._gameModel.boardMap[c][r]);
-            //             this._activeDropTweensAmount ++;
-            //             TweenMax.to(
-            //                 this._tiles[c][r], this._gameModel.tileDropDuration,
-            //                 {ease:Bounce.easeOut, delay:(c + r)*this._gameModel.tileDropDelay, y:this._tiles[c][r].y + this._gameModel.tileDropHeight,
-            //                     onComplete: this.onTweenCompleted.bind(this)}
-            //                 );
-            //         }
-            //     }
-            // }
-
-            var i = void 0;
-            for (i = 0; i < tileToDropPositions.length; i++) {
-                // let position = tileToDropPositions[i];
-                // this._droppedTileVOs.push(position);
-                var c = tileToDropPositions[i].x;
-                var r = tileToDropPositions[i].y;
-
-                this._tiles[c][r].updateTexture(this._gameModel.boardMap[c][r].index);
-
-                // this._activeDropTweensAmount ++;
-                // TweenMax.to(
-                //     this._tiles[position.x][position.y], this._gameModel.tileDropDuration,
-                //     {ease:Bounce.easeOut, delay:i*this._gameModel.tileDropDelay, y:this._tiles[vo.gridPositionX][vo.gridPositionY].y + this._gameModel.tileDropHeight,
-                //         onComplete: this.onTweenCompleted.bind(this)}
-                // );
-                this._tiles[c][r].y -= this._gameModel.tileDropHeight;
-                this._tiles[c][r].alpha = 1;
-
-                _TweenMax2.default.to(this._tiles[c][r], this._gameModel.tileDropDuration, { ease: Bounce.easeOut, delay: i * this._gameModel.tileDropDelay, y: this._tiles[c][r].y + this._gameModel.tileDropHeight //,
+                _TweenMax2.default.to(tile, this._gameModel.tileDropDuration * 10, { ease: Bounce.easeOut, delay: i * this._gameModel.tileDropDelay, y: tile.y + this._gameModel.tileDropHeight //,
                     // onComplete: this.onAllTweensCompleted.bind(this)}
                 });
             }
+
+            // let i;
+            // for (i=0; i < tileToDropPositions.length; i++){
+            //     // let position = tileToDropPositions[i];
+            //     // this._droppedTileVOs.push(position);
+            //     let c = tileToDropPositions[i].x;
+            //     let r = tileToDropPositions[i].y;
+            //
+            //     this._tiles[c][r].updateTexture(this._gameModel.boardMap[c][r].index);
+            //
+            //     // this._activeDropTweensAmount ++;
+            //     // TweenMax.to(
+            //     //     this._tiles[position.x][position.y], this._gameModel.tileDropDuration,
+            //     //     {ease:Bounce.easeOut, delay:i*this._gameModel.tileDropDelay, y:this._tiles[vo.gridPositionX][vo.gridPositionY].y + this._gameModel.tileDropHeight,
+            //     //         onComplete: this.onTweenCompleted.bind(this)}
+            //     // );
+            //     this._tiles[c][r].y -= this._gameModel.tileDropHeight;
+            //     this._tiles[c][r].alpha = 1;
+            //
+            //     TweenMax.to(
+            //         this._tiles[c][r], this._gameModel.tileDropDuration,
+            //         {ease:Bounce.easeOut, delay:i*this._gameModel.tileDropDelay, y:this._tiles[c][r].y + this._gameModel.tileDropHeight}//,
+            //             // onComplete: this.onAllTweensCompleted.bind(this)}
+            //     );
+            // }
         }
     }, {
         key: "onTweenCompleted",
