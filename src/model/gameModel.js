@@ -41,6 +41,10 @@ export default class GameModel {
         return this._tileDropDelay;
     }
 
+    get newTileDropDelay(){
+        return this._tileDropDelay;
+    }
+
     get swipeThresholdMin(){
         return this._swipeThresholdMin;
     }

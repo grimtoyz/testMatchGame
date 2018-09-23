@@ -52022,20 +52022,22 @@ var BoardGenerator = function () {
     }, {
         key: "moveDestroyedTilesToTop",
         value: function moveDestroyedTilesToTop(column) {
-
             column.forEach(function (item, index) {
                 item.movementDelta = index;
             });
 
             var destroyedTiles = column.filter(function (tileVO) {
-                return tileVO.isNew == true;
+                return tileVO.isNew === true;
             });
             var sinkingTiles = column.filter(function (tileVO) {
-                return tileVO.isNew == false;
+                return tileVO.isNew === false;
             });
             var updatedColumn = destroyedTiles.concat(sinkingTiles);
 
             updatedColumn.forEach(function (item, index) {
+                // if (item.isNew)
+                //     item.movementDelta = -1;
+                // else
                 item.movementDelta = index - item.movementDelta;
             });
 
@@ -52046,13 +52048,11 @@ var BoardGenerator = function () {
         value: function generateRandomTileVO() {
             var excludedTypeH = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : -1;
             var excludedTypeV = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : -1;
-            var column = arguments[2];
-            var row = arguments[3];
 
-            var types = new Array();
+            var types = [];
             var i = void 0;
             for (i = 0; i < this._tokenTypesTotal; i++) {
-                if (i != excludedTypeH && i != excludedTypeV) types.push(i);
+                if (i !== excludedTypeH && i !== excludedTypeV) types.push(i);
             }
 
             var index = Math.floor(Math.random() * types.length);
@@ -52182,6 +52182,12 @@ var MatchDetector = function () {
     }
 
     _createClass(MatchDetector, [{
+        key: "checkIfAnyPotentialMatches",
+        value: function checkIfAnyPotentialMatches(board) {}
+    }, {
+        key: "findAnyPotentialMatch",
+        value: function findAnyPotentialMatch() {}
+    }, {
         key: "detectMatchesAroundTile",
         value: function detectMatchesAroundTile(posX, posY) {
             var tilesToDestroy = new Array();
@@ -52332,7 +52338,7 @@ var SwipeHandler = function () {
 
         this._isSwapActive = false;
         this._thresholdPassed = false;
-        this._swipeEnabled = true;
+        this._swipeAllowed = true;
     }
 
     _createClass(SwipeHandler, [{
@@ -52355,7 +52361,7 @@ var SwipeHandler = function () {
     }, {
         key: 'onSwipe',
         value: function onSwipe(event) {
-            if (!this._isSwapActive || this._thresholdPassed || !this._swipeEnabled) return;
+            if (!this._isSwapActive || this._thresholdPassed || !this._swipeAllowed) return;
 
             this._deltaX = event.data.global.x - this._startingPoint.x;
             this._deltaY = event.data.global.y - this._startingPoint.y;
@@ -52380,9 +52386,9 @@ var SwipeHandler = function () {
             this.onSwiped = callback;
         }
     }, {
-        key: 'enableSwipe',
+        key: 'allowSwipe',
         set: function set(value) {
-            this._swipeEnabled = value;
+            this._swipeAllowed = value;
         }
     }]);
 
@@ -52493,10 +52499,12 @@ var Controller = function () {
             this._gameView.fieldReady(this.onFieldReady.bind(this));
             this._gameView.onTileSwapAttempted(this.onTileSwapAttempted.bind(this));
             this._gameView.onSwapAnimationFinished(this.onTilesSwapped.bind(this));
-            this._gameView.onTileDestroyedAnimationComplete(this.onTileDestroyed.bind(this));
+            // this._gameView.onTileDestroyedAnimationComplete(this.onTileDestroyed.bind(this));
+            this._gameView.onAllTilesDestroyed(this.onAllTilesDestroyed.bind(this));
             this._gameView.onSwapCancelAnimationFinished(this.onSwapCanceled.bind(this));
             this._gameView.onTileSinkingAnimComplete(this.onTileSinkingComplete.bind(this));
             this._gameView.onNewTileDropped(this.onNewTileDropped.bind(this));
+            // this._gameView.onAllTilesDropped(this.onAllNewTilesDropped.bind(this));
         }
     }, {
         key: "onFieldReady",
@@ -52506,7 +52514,7 @@ var Controller = function () {
     }, {
         key: "onTileSwapAttempted",
         value: function onTileSwapAttempted(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY) {
-            this._gameView.enableSwipe(false);
+            this._gameView.allowSwipe(false);
 
             this._gameModel.boardMap[tileGridPosX][tileGridPosY].isSwappable = false;
             this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY].isSwappable = false;
@@ -52552,56 +52560,55 @@ var Controller = function () {
     }, {
         key: "onTilesSwapped",
         value: function onTilesSwapped(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY, tilesToDestroy) {
-            this._gameView.enableSwipe(true);
+            // this._gameView.allowSwipe(true);
 
             this._gameModel.boardMap[tileGridPosX][tileGridPosY].isSwappable = true;
             this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY].isSwappable = true;
 
             this._gameView.destroyTiles(tilesToDestroy);
         }
+
+        // onTileDestroyed(gridPosX, gridPosY){
+        //     let tilesToSink = new Array();
+        //
+        //         for (let r = 0; r < this._gameModel.rowsTotal; r++){
+        //             let tileVO = this._gameModel.boardMap[gridPosX][r];
+        //
+        //             if (tileVO.movementDelta !== 0 || tileVO.isNew){
+        //                 tileVO.isSwappable = false;
+        //                 tileVO.gridPosX = gridPosX;
+        //                 tileVO.gridPosY = r;
+        //                 tilesToSink.push(tileVO);
+        //             }
+        //         }
+        //
+        //     this._gameView.sinkTiles(tilesToSink);
+        // }
+
     }, {
-        key: "onTileDestroyed",
-        value: function onTileDestroyed() {
-            var tilesToSink = new Array();
-            var newTileVOs = new Array();
+        key: "onAllTilesDestroyed",
+        value: function onAllTilesDestroyed() {
+            var tilesToSink = [];
 
             for (var c = 0; c < this._gameModel.columnsTotal; c++) {
                 for (var r = 0; r < this._gameModel.rowsTotal; r++) {
                     var tileVO = this._gameModel.boardMap[c][r];
-                    if (tileVO.movementDelta != 0) {
+
+                    if (tileVO.movementDelta !== 0 || tileVO.isNew) {
                         tileVO.isSwappable = false;
                         tileVO.gridPosX = c;
                         tileVO.gridPosY = r;
                         tilesToSink.push(tileVO);
-                        // if (tileVO.isNew)
-                        //     newTileVOs.push(tileVO);
-                    }
-                    if (tileVO.isNew) {
-                        tileVO.gridPosX = c;
-                        tileVO.gridPosY = r;
-                        newTileVOs.push(tileVO);
-                        // tilesToSink.push(tileVO);
                     }
                 }
             }
 
-            if (tilesToSink.length == 0 && newTileVOs.length != 0) {
-                newTileVOs.forEach(function (newTileVO) {
-                    this._gameView.dropNewTile(newTileVO);
-                }.bind(this));
-            } else this._gameView.sinkTiles(tilesToSink, newTileVOs);
-            // this._gameView.dropNewTiles(newTileVOs);
-            // if(tilesToSink.length == 0 && newTileVOs.length != 0){
-            //     newTileVOs.forEach(function (newTileVO) {
-            //         // this._gameView.onTileSank(newTileVO, 0);
-            //         this.onTileSinkingComplete(newTileVO.gridPosX, newTileVO.gridPosY);
-            //     }.bind(this));
-            // }
+            this._gameView.sinkTiles(tilesToSink);
         }
     }, {
         key: "onSwapCanceled",
         value: function onSwapCanceled(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY) {
-            this._gameView.enableSwipe(true);
+            this._gameView.allowSwipe(true);
 
             var tile = this._gameModel.boardMap[tileGridPosX][tileGridPosY];
             this._gameModel.boardMap[tileGridPosX][tileGridPosY] = this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY];
@@ -52613,18 +52620,18 @@ var Controller = function () {
     }, {
         key: "onTileSinkingComplete",
         value: function onTileSinkingComplete(gridPosX, gridPosY) {
-            if (!this._gameModel.boardMap[gridPosX][gridPosY].isNew) this._gameModel.boardMap[gridPosX][gridPosY].isSwappable = true;
+            this._gameModel.boardMap[gridPosX][gridPosY].isSwappable = true;
+            this._gameModel.boardMap[gridPosX][gridPosY].isNew = false;
 
             var matches = this._matchDetector.detectMatchesAroundTile(gridPosX, gridPosY);
             if (matches.length > 0) {
                 this.moveColumns(matches);
                 this._gameView.destroyTiles(matches);
-            } else {
-                if (this._gameModel.boardMap[gridPosX][gridPosY].isNew) {
-                    var newTileVO = this._gameModel.boardMap[gridPosX][gridPosY];
-                    this._gameView.dropNewTile(newTileVO);
-                }
-            }
+            } else this._gameView.allowSwipe(true);
+            // if (this._gameModel.boardMap[gridPosX][gridPosY].isNew){
+            //     let newTileVO = this._gameModel.boardMap[gridPosX][gridPosY];
+            //     // this._gameView.dropNewTile(newTileVO);
+            // }
         }
     }, {
         key: "onNewTileDropped",
@@ -52636,13 +52643,53 @@ var Controller = function () {
             if (matches.length > 0) {
                 this.moveColumns(matches);
                 this._gameView.destroyTiles(matches);
-            } else {
-                if (this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY].isNew) {
-                    var _newTileVO = this._gameModel.boardMap[_newTileVO.gridPosX][_newTileVO.gridPosY];
-                    this._gameView.dropNewTile(_newTileVO);
-                }
-            }
+            } else if (this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY].isNew) {
+                var _newTileVO = this._gameModel.boardMap[_newTileVO.gridPosX][_newTileVO.gridPosY];
+                this._gameView.dropNewTile(_newTileVO);
+            } else if (this.isGamefieldStatic) // 2DO - check if no matches
+                this._gameView.allowSwipe(true);
         }
+
+        // onAllNewTilesDropped(){
+        //     // let c;
+        //     // let r;
+        //     for (let c=0; c < this._gameModel.boardMap.length; c++){
+        //         for (let r=0; r < this._gameModel.boardMap[c].length; r++){
+        //             if (this._gameModel.boardMap[c][r].isNew)
+        //             {
+        //                 this._gameModel.boardMap[c][r].isSwappable = true;
+        //                 this._gameModel.boardMap[c][r].isNew = false;
+        //             }
+        //             // this._gameModel.boardMap[c][r].isSwappable = true;
+        //             // this._gameModel.boardMap[c][r].isNew = false;
+        //         }
+        //     }
+        //
+        //     newTileVOs.forEach(function (newTileVO){
+        //         let matches = this._matchDetector.detectMatchesAroundTile(newTileVO.gridPosX, newTileVO.gridPosY);
+        //         if (matches.length > 0){
+        //             this.moveColumns(matches);
+        //             this._gameView.destroyTiles(matches);
+        //         }
+        //         else{
+        //             if (this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY].isNew){
+        //                 let newTileVO = this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY];
+        //                 this._gameView.dropNewTile(newTileVO);
+        //             }
+        //         }
+        //     });
+        //     // let matches = this._matchDetector.detectMatchesAroundTile(newTileVO.gridPosX, newTileVO.gridPosY);
+        //     // if (matches.length > 0){
+        //     //     this.moveColumns(matches);
+        //     //     this._gameView.destroyTiles(matches);
+        //     // }
+        //     // else{
+        //     //     if (this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY].isNew){
+        //     //         let newTileVO = this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY];
+        //     //         this._gameView.dropNewTile(newTileVO);
+        //     //     }
+        //     // }
+        // }
 
         // moveColumns(tilesToDestroy){
         //     for (let i = 0; i < tilesToDestroy.length; i++){
@@ -52659,10 +52706,8 @@ var Controller = function () {
     }, {
         key: "setAllTilesToSwappable",
         value: function setAllTilesToSwappable() {
-            var c = void 0;
-            var r = void 0;
-            for (c = 0; c < this._gameModel.boardMap.length; c++) {
-                for (r = 0; r < this._gameModel.boardMap[c].length; r++) {
+            for (var c = 0; c < this._gameModel.boardMap.length; c++) {
+                for (var r = 0; r < this._gameModel.boardMap[c].length; r++) {
                     this._gameModel.boardMap[c][r].isSwappable = true;
                     this._gameModel.boardMap[c][r].isNew = false;
                 }
@@ -52697,6 +52742,19 @@ var Controller = function () {
             // this._gameView.onResize(ratio);
 
             // alert(ratio);
+        }
+    }, {
+        key: "isGamefieldStatic",
+        get: function get() {
+            var isFieldStatic = true;
+
+            for (var c = 0; c < this._gameModel.boardMap.length; c++) {
+                for (var r = 0; r < this._gameModel.boardMap[c].length; r++) {
+                    if (!this._gameModel.boardMap[c][r].isSwappable || this._gameModel.boardMap[c][r].isNew === true) isFieldStatic = false;
+                }
+            }
+
+            return isFieldStatic;
         }
     }, {
         key: "view",
@@ -52806,6 +52864,11 @@ var GameModel = function () {
         }
     }, {
         key: 'tileDropDelay',
+        get: function get() {
+            return this._tileDropDelay;
+        }
+    }, {
+        key: 'newTileDropDelay',
         get: function get() {
             return this._tileDropDelay;
         }
@@ -52957,13 +53020,15 @@ var GameView = function (_PIXI$Container) {
 
         _this._swipeHandler = new _swipeHandler2.default(_this, gameModel.swipeThresholdMin, gameModel.swipeThresholdMax);
         _this._swipeHandler.onSwiped = _this.onSwiped.bind(_this);
+
+        _this._activeNewTileDropTweens = 0;
         return _this;
     }
 
     _createClass(GameView, [{
-        key: "enableSwipe",
-        value: function enableSwipe(value) {
-            this._swipeHandler.enableSwipe = value;
+        key: "allowSwipe",
+        value: function allowSwipe(value) {
+            this._swipeHandler.allowSwipe = value;
         }
     }, {
         key: "fillBackGround",
@@ -53059,6 +53124,8 @@ var GameView = function (_PIXI$Container) {
         key: "onTileClicked",
         value: function onTileClicked(event) {
             this._lastTileClicked = event.currentTarget;
+            console.log("TILE CLICKED - index:", this._lastTileClicked.index, "gridPosX=", this._lastTileClicked.gridPositionX, "gridPosY=", this._lastTileClicked.gridPositionY);
+            console.log("TILE CLICKED - model:", this._gameModel.boardMap[this._lastTileClicked.gridPositionX][this._lastTileClicked.gridPositionY].index);
         }
     }, {
         key: "onSwiped",
@@ -53152,32 +53219,64 @@ var GameView = function (_PIXI$Container) {
     }, {
         key: "destroyTiles",
         value: function destroyTiles(tilesToDestroy) {
+            this._activeTileDestroyedTweens = 0;
+
             for (var i = 0; i < tilesToDestroy.length; i++) {
                 var tileGridPosX = tilesToDestroy[i].x;
                 var tileGridPosY = tilesToDestroy[i].y;
 
-                _TweenMax2.default.to(this._tiles[tileGridPosX][tileGridPosY], this.TILE_FADE_OUT_DURATION, { ease: Bounce.easeIn, alpha: 0.2,
-                    // onCompleteParams:[tilesToDestroy, topTiles, offsetY], onComplete: this.onTileDestroyed.bind(this)}
-                    onComplete: this.onTileDestroyedAnimationComplete.bind(this) });
+                this._activeTileDestroyedTweens++;
+
+                _TweenMax2.default.to(this._tiles[tileGridPosX][tileGridPosY], this.TILE_FADE_OUT_DURATION, { ease: Bounce.easeIn, alpha: 0.2, //0.2,
+                    // onCompleteParams:[tilesToDestroy],
+                    onComplete: this.checkIfAllTilesDestroyed.bind(this) });
             }
         }
     }, {
-        key: "onTileDestroyedAnimationComplete",
-        value: function onTileDestroyedAnimationComplete(callback) {
-            this.onTileDestroyedAnimationComplete = callback;
+        key: "checkIfAllTilesDestroyed",
+        value: function checkIfAllTilesDestroyed() {
+            this._activeTileDestroyedTweens--;
+
+            if (this._activeTileDestroyedTweens === 0) this.onAllTilesDestroyed();
+        }
+
+        // onTileDestroyedAnimationComplete(callback){
+        //     this.onTileDestroyedAnimationComplete = callback;
+        // }
+
+    }, {
+        key: "onAllTilesDestroyed",
+        value: function onAllTilesDestroyed(callback) {
+            this.onAllTilesDestroyed = callback;
         }
     }, {
         key: "sinkTiles",
-        value: function sinkTiles(tilesToSink, newTileVOs) {
+        value: function sinkTiles(tilesToSink) {
             tilesToSink.forEach(function (tileVO) {
+                // if (tileVO.movementDelta === -1){
+                //     tileVO.movementDelta = this._gameModel.rowsTotal;
+                // }
+
                 var posDeltaY = tileVO.movementDelta;
                 var tile = this._tiles[tileVO.gridPosX][tileVO.gridPosY - posDeltaY];
 
-                var duration = this._gameModel._tileDropDuration;
-                if (tileVO.isNew) duration = 0.1;
+                if (tileVO.isNew) {
+                    tile.alpha = 1;
+                    tile.updateTexture(this._gameModel.boardMap[tile.gridPositionX][tile.gridPositionY + posDeltaY].index);
 
-                _TweenMax2.default.to(tile, duration, { ease: Back.easeOut, y: tile.y + posDeltaY * this._cellHeight,
-                    onCompleteParams: [tile, posDeltaY, newTileVOs],
+                    // tile.y =
+                    posDeltaY = this._gameModel.rowsTotal;
+                    // tile.y -= 2*posDeltaY*this._cellHeight;
+                    // tileVO.movementDelta = this._gameModel.rowsTotal;
+                    tile.y = tileVO.gridPosY * this._cellHeight - posDeltaY * this._cellHeight;
+                    // console.log("");
+
+                    _TweenMax2.default.to(tile, this._gameModel.tileDropDuration, { ease: Back.easeOut, y: tile.y + posDeltaY * this._cellHeight,
+                        onCompleteParams: [tile, tileVO.movementDelta],
+                        onComplete: this.onTileSank.bind(this)
+                    });
+                } else _TweenMax2.default.to(tile, this._gameModel.tileDropDuration, { ease: Back.easeOut, y: tile.y + posDeltaY * this._cellHeight,
+                    onCompleteParams: [tile, posDeltaY],
                     onComplete: this.onTileSank.bind(this)
                 });
             }.bind(this));
@@ -53195,9 +53294,6 @@ var GameView = function (_PIXI$Container) {
         value: function onTileSank(tile, posDeltaY) {
             this._tiles[tile.gridPositionX][tile.gridPositionY + posDeltaY] = tile;
             this._tiles[tile.gridPositionX][tile.gridPositionY + posDeltaY].gridPositionY += posDeltaY;
-
-            // if (this._gameModel.boardMap[tile.gridPositionX][tile.gridPositionY].isNew)
-            //     tile.updateTexture(this._gameModel.boardMap[tile.gridPositionX][tile.gridPositionY].index);
 
             this.onTileSinkingAnimComplete(tile.gridPositionX, tile.gridPositionY);
         }
@@ -53254,19 +53350,59 @@ var GameView = function (_PIXI$Container) {
             console.log(tile.y);
             // tile.y -= 200;
 
+            // this.
+
             // if (this._gameModel.boardMap[tile.gridPositionX][tile.gridPositionY].isNew)
             tile.updateTexture(this._gameModel.boardMap[tile.gridPositionX][tile.gridPositionY].index);
 
             tile.alpha = 1;
+            // let delay = this._activeNewTileDropTweens * this._gameModel.tileDropDelay;
 
-            _TweenMax2.default.to(tile, this._gameModel.tileDropDuration, { ease: Back.easeOut, delay: this._gameModel.tileDropDelay, y: newTileVO.gridPosY * this._cellHeight,
+            // let delay =  this._activeNewTileDropTweens  * this._gameModel.newTileDropDelay;
+            // let overshoot = this._gameModel._rowsTotal - 1 - newTileVO.gridPosY;
+
+            this._activeNewTileDropTweens++;
+
+            _TweenMax2.default.to(tile, this._gameModel.tileDropDuration * 2, { ease: Back.easeOut.config(1), delay: this._gameModel.newTileDropDelay, y: newTileVO.gridPosY * this._cellHeight,
                 onCompleteParams: [newTileVO],
                 onComplete: this.onNewTileDropped.bind(this) });
+        }
+    }, {
+        key: "dropNewTiles",
+        value: function dropNewTiles(newTileVOs) {
+            newTileVOs.forEach(function (newTileVO) {
+                var tile = this._tiles[newTileVO.gridPosX][newTileVO.gridPosY];
+                tile.y -= this._gameModel.tileDropHeight;
+
+                tile.updateTexture(this._gameModel.boardMap[tile.gridPositionX][tile.gridPositionY].index);
+                tile.alpha = 1;
+
+                this._activeNewTileDropTweens++;
+
+                _TweenMax2.default.to(tile, this._gameModel.tileDropDuration, { ease: Back.easeOut.config(1),
+                    // delay:this._gameModel.newTileDropDelay,
+                    y: newTileVO.gridPosY * this._cellHeight,
+                    onCompleteParams: [newTileVO],
+                    onComplete: this.checkIfAllTilesDropped.bind(this) });
+            });
+        }
+    }, {
+        key: "checkIfAllTilesDropped",
+        value: function checkIfAllTilesDropped(newTileVO) {
+            this.onNewTileDropped(newTileVO);
+
+            this._activeNewTileDropTweens--;
+            if (this._activeNewTileDropTweens == 0) this.onAllTilesDropped();
         }
     }, {
         key: "onNewTileDropped",
         value: function onNewTileDropped(callback) {
             this.onNewTileDropped = callback;
+        }
+    }, {
+        key: "onAllTilesDropped",
+        value: function onAllTilesDropped(callback) {
+            this.onAllTilesDropped = callback;
         }
 
         // onTweenCompleted(){

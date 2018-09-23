@@ -41,28 +41,30 @@ export default class BoardGenerator{
     }
 
     moveDestroyedTilesToTop(column){
-
         column.forEach(function(item, index) {
             item.movementDelta = index;
         });
 
-        let destroyedTiles = column.filter(tileVO => tileVO.isNew == true);
-        let sinkingTiles = column.filter(tileVO => tileVO.isNew == false);
+        let destroyedTiles = column.filter(tileVO => tileVO.isNew === true);
+        let sinkingTiles = column.filter(tileVO => tileVO.isNew === false);
         let updatedColumn = destroyedTiles.concat(sinkingTiles);
 
         updatedColumn.forEach(function (item, index) {
-            item.movementDelta = index - item.movementDelta
+            // if (item.isNew)
+            //     item.movementDelta = -1;
+            // else
+                item.movementDelta = index - item.movementDelta;
         });
 
         return updatedColumn;
     }
 
-    generateRandomTileVO(excludedTypeH=-1, excludedTypeV=-1, column, row){
-        let types = new Array();
+    generateRandomTileVO(excludedTypeH=-1, excludedTypeV=-1){
+        let types = [];
         let i;
         for (i=0; i < this._tokenTypesTotal; i++)
         {
-            if (i!=excludedTypeH && i!=excludedTypeV)
+            if (i !== excludedTypeH && i !== excludedTypeV)
                 types.push(i);
         }
 

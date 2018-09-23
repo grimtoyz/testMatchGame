@@ -58,10 +58,12 @@ export default class Controller {
         this._gameView.fieldReady(this.onFieldReady.bind(this));
         this._gameView.onTileSwapAttempted(this.onTileSwapAttempted.bind(this));
         this._gameView.onSwapAnimationFinished(this.onTilesSwapped.bind(this));
-        this._gameView.onTileDestroyedAnimationComplete(this.onTileDestroyed.bind(this));
+        // this._gameView.onTileDestroyedAnimationComplete(this.onTileDestroyed.bind(this));
+        this._gameView.onAllTilesDestroyed(this.onAllTilesDestroyed.bind(this));
         this._gameView.onSwapCancelAnimationFinished(this.onSwapCanceled.bind(this));
         this._gameView.onTileSinkingAnimComplete(this.onTileSinkingComplete.bind(this));
         this._gameView.onNewTileDropped(this.onNewTileDropped.bind(this));
+        // this._gameView.onAllTilesDropped(this.onAllNewTilesDropped.bind(this));
     }
 
     onFieldReady(){
@@ -69,7 +71,7 @@ export default class Controller {
     }
 
     onTileSwapAttempted(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY){
-        this._gameView.enableSwipe(false);
+        this._gameView.allowSwipe(false);
 
         this._gameModel.boardMap[tileGridPosX][tileGridPosY].isSwappable = false;
         this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY].isSwappable = false;
@@ -115,7 +117,7 @@ export default class Controller {
     }
 
     onTilesSwapped(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY, tilesToDestroy){
-        this._gameView.enableSwipe(true);
+        // this._gameView.allowSwipe(true);
 
         this._gameModel.boardMap[tileGridPosX][tileGridPosY].isSwappable = true;
         this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY].isSwappable = true;
@@ -123,51 +125,44 @@ export default class Controller {
         this._gameView.destroyTiles(tilesToDestroy);
     }
 
-    onTileDestroyed(){
-        let tilesToSink = new Array();
-        let newTileVOs = new Array();
+    // onTileDestroyed(gridPosX, gridPosY){
+    //     let tilesToSink = new Array();
+    //
+    //         for (let r = 0; r < this._gameModel.rowsTotal; r++){
+    //             let tileVO = this._gameModel.boardMap[gridPosX][r];
+    //
+    //             if (tileVO.movementDelta !== 0 || tileVO.isNew){
+    //                 tileVO.isSwappable = false;
+    //                 tileVO.gridPosX = gridPosX;
+    //                 tileVO.gridPosY = r;
+    //                 tilesToSink.push(tileVO);
+    //             }
+    //         }
+    //
+    //     this._gameView.sinkTiles(tilesToSink);
+    // }
 
-        for (let c = 0; c < this._gameModel.columnsTotal; c++)
-        {
+    onAllTilesDestroyed(){
+        let tilesToSink = [];
+
+        for (let c=0; c < this._gameModel.columnsTotal; c++){
             for (let r = 0; r < this._gameModel.rowsTotal; r++){
                 let tileVO = this._gameModel.boardMap[c][r];
-                if (tileVO.movementDelta != 0){
+
+                if (tileVO.movementDelta !== 0 || tileVO.isNew){
                     tileVO.isSwappable = false;
                     tileVO.gridPosX = c;
                     tileVO.gridPosY = r;
                     tilesToSink.push(tileVO);
-                    // if (tileVO.isNew)
-                    //     newTileVOs.push(tileVO);
                 }
-                if (tileVO.isNew){
-                    tileVO.gridPosX = c;
-                    tileVO.gridPosY = r;
-                    newTileVOs.push(tileVO);
-                    // tilesToSink.push(tileVO);
-                }
-
             }
         }
 
-        if(tilesToSink.length == 0 && newTileVOs.length != 0){
-            newTileVOs.forEach(function (newTileVO) {
-                this._gameView.dropNewTile(newTileVO);
-            }.bind(this));
-        }
-        else
-            this._gameView.sinkTiles(tilesToSink, newTileVOs);
-        // this._gameView.dropNewTiles(newTileVOs);
-        // if(tilesToSink.length == 0 && newTileVOs.length != 0){
-        //     newTileVOs.forEach(function (newTileVO) {
-        //         // this._gameView.onTileSank(newTileVO, 0);
-        //         this.onTileSinkingComplete(newTileVO.gridPosX, newTileVO.gridPosY);
-        //     }.bind(this));
-        // }
-
+        this._gameView.sinkTiles(tilesToSink);
     }
 
     onSwapCanceled(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY){
-        this._gameView.enableSwipe(true);
+        this._gameView.allowSwipe(true);
 
         let tile = this._gameModel.boardMap[tileGridPosX][tileGridPosY];
         this._gameModel.boardMap[tileGridPosX][tileGridPosY] = this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY];
@@ -178,38 +173,81 @@ export default class Controller {
     }
 
     onTileSinkingComplete(gridPosX, gridPosY){
-        if (!this._gameModel.boardMap[gridPosX][gridPosY].isNew)
-            this._gameModel.boardMap[gridPosX][gridPosY].isSwappable = true;
+        this._gameModel.boardMap[gridPosX][gridPosY].isSwappable = true;
+        this._gameModel.boardMap[gridPosX][gridPosY].isNew = false;
 
         let matches = this._matchDetector.detectMatchesAroundTile(gridPosX, gridPosY);
         if (matches.length > 0){
             this.moveColumns(matches);
             this._gameView.destroyTiles(matches);
         }
-        else{
-            if (this._gameModel.boardMap[gridPosX][gridPosY].isNew){
-                let newTileVO = this._gameModel.boardMap[gridPosX][gridPosY];
-                this._gameView.dropNewTile(newTileVO);
-            }
-        }
+        else
+            this._gameView.allowSwipe(true);
+            // if (this._gameModel.boardMap[gridPosX][gridPosY].isNew){
+            //     let newTileVO = this._gameModel.boardMap[gridPosX][gridPosY];
+            //     // this._gameView.dropNewTile(newTileVO);
+            // }
     }
 
     onNewTileDropped(newTileVO){
         this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY].isSwappable = true;
         this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY].isNew = false;
 
+
+
         let matches = this._matchDetector.detectMatchesAroundTile(newTileVO.gridPosX, newTileVO.gridPosY);
         if (matches.length > 0){
             this.moveColumns(matches);
             this._gameView.destroyTiles(matches);
         }
-        else{
-            if (this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY].isNew){
-                let newTileVO = this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY];
-                this._gameView.dropNewTile(newTileVO);
-            }
+        else if (this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY].isNew){
+            let newTileVO = this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY];
+            this._gameView.dropNewTile(newTileVO);
         }
+        else if (this.isGamefieldStatic) // 2DO - check if no matches
+            this._gameView.allowSwipe(true);
     }
+
+    // onAllNewTilesDropped(){
+    //     // let c;
+    //     // let r;
+    //     for (let c=0; c < this._gameModel.boardMap.length; c++){
+    //         for (let r=0; r < this._gameModel.boardMap[c].length; r++){
+    //             if (this._gameModel.boardMap[c][r].isNew)
+    //             {
+    //                 this._gameModel.boardMap[c][r].isSwappable = true;
+    //                 this._gameModel.boardMap[c][r].isNew = false;
+    //             }
+    //             // this._gameModel.boardMap[c][r].isSwappable = true;
+    //             // this._gameModel.boardMap[c][r].isNew = false;
+    //         }
+    //     }
+    //
+    //     newTileVOs.forEach(function (newTileVO){
+    //         let matches = this._matchDetector.detectMatchesAroundTile(newTileVO.gridPosX, newTileVO.gridPosY);
+    //         if (matches.length > 0){
+    //             this.moveColumns(matches);
+    //             this._gameView.destroyTiles(matches);
+    //         }
+    //         else{
+    //             if (this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY].isNew){
+    //                 let newTileVO = this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY];
+    //                 this._gameView.dropNewTile(newTileVO);
+    //             }
+    //         }
+    //     });
+    //     // let matches = this._matchDetector.detectMatchesAroundTile(newTileVO.gridPosX, newTileVO.gridPosY);
+    //     // if (matches.length > 0){
+    //     //     this.moveColumns(matches);
+    //     //     this._gameView.destroyTiles(matches);
+    //     // }
+    //     // else{
+    //     //     if (this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY].isNew){
+    //     //         let newTileVO = this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY];
+    //     //         this._gameView.dropNewTile(newTileVO);
+    //     //     }
+    //     // }
+    // }
 
     // moveColumns(tilesToDestroy){
     //     for (let i = 0; i < tilesToDestroy.length; i++){
@@ -224,10 +262,8 @@ export default class Controller {
     // }
 
     setAllTilesToSwappable(){
-        let c;
-        let r;
-        for (c=0; c < this._gameModel.boardMap.length; c++){
-            for (r=0; r < this._gameModel.boardMap[c].length; r++){
+        for (let c= 0; c < this._gameModel.boardMap.length; c++){
+            for (let r = 0; r < this._gameModel.boardMap[c].length; r++){
                 this._gameModel.boardMap[c][r].isSwappable = true;
                 this._gameModel.boardMap[c][r].isNew = false;
             }
@@ -262,6 +298,19 @@ export default class Controller {
 
         // alert(ratio);
 
+    }
+
+    get isGamefieldStatic(){
+        let isFieldStatic = true;
+
+        for (let c= 0; c < this._gameModel.boardMap.length; c++){
+            for (let r = 0; r < this._gameModel.boardMap[c].length; r++){
+                if (!this._gameModel.boardMap[c][r].isSwappable || this._gameModel.boardMap[c][r].isNew === true)
+                    isFieldStatic = false;
+            }
+        }
+
+        return isFieldStatic;
     }
 
     get view(){

@@ -10,6 +10,14 @@ export default class MatchDetector{
         this._board = gameModel.boardMap;
     }
 
+    checkIfAnyPotentialMatches(board){
+
+    }
+
+    findAnyPotentialMatch(){
+
+    }
+
     detectMatchesAroundTile(posX, posY){
         let tilesToDestroy = new Array();
 
