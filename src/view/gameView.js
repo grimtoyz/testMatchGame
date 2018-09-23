@@ -473,6 +473,14 @@ export default class GameView extends PIXI.Container{
         this.fieldContainer.scale.x = this.fieldContainer.scale.y = scale;
     }
 
+    get cellWidth(){
+        return this._cellWidth;
+    }
+
+    get cellHeight(){
+        return this._cellHeight;
+    }
+
     get FIELD_PADDING(){
         return 10;
     }
@@ -483,5 +491,9 @@ export default class GameView extends PIXI.Container{
 
     get TILE_FADE_OUT_DURATION(){
         return 0.3;
+    }
+
+    get fieldContainer(){
+        return this._fieldContainer;
     }
 }

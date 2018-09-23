@@ -10,16 +10,100 @@ export default class MatchDetector{
         this._board = gameModel.boardMap;
     }
 
-    checkIfAnyPotentialMatches(board){
+    findAnyPotentialSwap(){
+        for (let c = 0; c < this._model.boardMap.length - 2; c++)
+        {
+            for (let r = 0; r < this._model.boardMap[0].length - 2; r++)
+            {
+                if (this._model.boardMap[c][r].index === this._model.boardMap[c+1][r].index){
+                    let combo = this.checkHorizontalLine(c, r, this._model.boardMap[c][r].index);
+                    if (combo.length > 0){
+                        combo.push(this._model.boardMap[c][r], this._model.boardMap[c+1][r]);
+                        return combo;
+                    }
+                }
 
+                if (this._model.boardMap[c][r].index === this._model.boardMap[c][r+1].index){
+                    let combo = this.checkVerticalLine(c, r, this._model.boardMap[c][r].index);
+                    if (combo.length > 0){
+                        combo.push(this._model.boardMap[c][r], this._model.boardMap[c][r+1]);
+                        return combo;
+                    }
+                }
+            }
+        }
+
+        return [];
     }
 
-    findAnyPotentialMatch(){
+    checkHorizontalLine(posX, posY, index)
+    {
+        let combo = [];
 
+        if (posX > 0) {
+            if (posY > 0) {
+                if (this._model.boardMap[posX - 1][posY - 1].index === index) {
+                    combo.push(this._model.boardMap[posX - 1][posY - 1]);
+                    combo.push(this._model.boardMap[posX - 1][posY]);
+                }
+            }
+
+            if (this._model.boardMap[posX - 1][posY + 1].index === index){
+                combo.push(this._model.boardMap[posX - 1][posY + 1]);
+                combo.push(this._model.boardMap[posX - 1][posY]);
+            }
+        }
+
+        if (posY > 0){
+            if (this._model.boardMap[posX + 2][posY - 1].index === index){
+                combo.push(this._model.boardMap[posX + 2][posY - 1]);
+                combo.push(this._model.boardMap[posX + 2][posY]);
+            }
+        }
+
+        if (this._model.boardMap[posX + 2][posY + 1].index === index){
+            combo.push(this._model.boardMap[posX + 2][posY + 1]);
+            combo.push(this._model.boardMap[posX + 2][posY]);
+        }
+
+        return combo;
+    }
+
+    checkVerticalLine(posX, posY, index)
+    {
+        let combo = [];
+
+        if (posY > 0) {
+            if (posX > 0) {
+                if (this._model.boardMap[posX - 1][posY - 1].index === index) {
+                    combo.push(this._model.boardMap[posX - 1][posY - 1]);
+                    combo.push(this._model.boardMap[posX][posY - 1]);
+                }
+            }
+
+            if (this._model.boardMap[posX + 1][posY - 1].index === index){
+                combo.push(this._model.boardMap[posX + 1][posY - 1]);
+                combo.push(this._model.boardMap[posX][posY - 1]);
+            }
+        }
+
+        if (posX > 0){
+            if (this._model.boardMap[posX - 1][posY + 2].index === index){
+                combo.push(this._model.boardMap[posX - 1][posY + 2]);
+                combo.push(this._model.boardMap[posX][posY + 2]);
+            }
+        }
+
+        if (this._model.boardMap[posX + 1][posY + 2].index === index){
+            combo.push(this._model.boardMap[posX + 1][posY + 2]);
+            combo.push(this._model.boardMap[posX][posY + 2]);
+        }
+
+        return combo;
     }
 
     detectMatchesAroundTile(posX, posY){
-        let tilesToDestroy = new Array();
+        let tilesToDestroy = [];
 
         let matchingTilesH = this.getMatchesH(posX, posY);
         let matchingTilesV = this.getMatchesV(posX, posY);
@@ -45,16 +129,17 @@ export default class MatchDetector{
     }
 
     getMatchesH(posX, posY){
-        let matches = new Array();
+        let matches = [];
 
-        let c=posX-1;
-        while (c >= 0 && this._board[c][posY].index == this._board[posX][posY].index && this._board[c][posY].isSwappable){
+        let c = posX - 1;
+        while (c >= 0 && this._board[c][posY].index === this._board[posX][posY].index && this._board[c][posY].isSwappable){
             let point = new Point(c, posY);
             matches.push(point);
             c--;
         }
-        c=posX+1;
-        while (c < this._model.columnsTotal && this._board[c][posY].index == this._board[posX][posY].index && this._board[c][posY].isSwappable){
+
+        c = posX + 1;
+        while (c < this._model.columnsTotal && this._board[c][posY].index === this._board[posX][posY].index && this._board[c][posY].isSwappable){
             let point = new Point(c, posY);
             matches.push(point);
             c++;
@@ -64,16 +149,17 @@ export default class MatchDetector{
     }
 
     getMatchesV(posX, posY){
-        let matches = new Array();
+        let matches = [];
 
-        let r=posY-1;
-        while (r >= 0 && this._board[posX][r].index == this._board[posX][posY].index && this._board[posX][r].isSwappable){
+        let r = posY - 1;
+        while (r >= 0 && this._board[posX][r].index === this._board[posX][posY].index && this._board[posX][r].isSwappable){
             let point = new Point(posX, r);
             matches.push(point);
             r--;
         }
-        r=posY+1;
-        while (r < this._model.rowsTotal && this._board[posX][r].index == this._board[posX][posY].index && this._board[posX][r].isSwappable){
+
+        r = posY + 1;
+        while (r < this._model.rowsTotal && this._board[posX][r].index === this._board[posX][posY].index && this._board[posX][r].isSwappable){
             let point = new Point(posX, r);
             matches.push(point);
             r++;

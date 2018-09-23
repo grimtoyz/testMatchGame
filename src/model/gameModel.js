@@ -68,4 +68,12 @@ export default class GameModel {
     get TILE_TYPES_TOTAL(){
         return 6;
     }
+
+    get BACKGROUND_WIDTH(){
+        return 1280;
+    }
+
+    get BACKGROUND_HEIGHT(){
+        return 1024;
+    }
 }

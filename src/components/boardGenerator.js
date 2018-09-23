@@ -33,7 +33,11 @@ export default class BoardGenerator{
                     if ( board[c-2][r].index == board[c-1][r].index)
                         excludedH = board[c-1][r].index;
                 }
-                column.push(this.generateRandomTileVO(excludedH, excludedV));
+
+                let tileVO = this.generateRandomTileVO(excludedH, excludedV);
+                tileVO.gridPosX = c;
+                tileVO.gridPosY = r;
+                column.push(tileVO);
             }
         }
 
