@@ -45,12 +45,14 @@ export default class MatchDetector{
                 if (this._model.boardMap[posX - 1][posY - 1].index === index) {
                     combo.push(this._model.boardMap[posX - 1][posY - 1]);
                     combo.push(this._model.boardMap[posX - 1][posY]);
+                    return combo;
                 }
             }
 
             if (this._model.boardMap[posX - 1][posY + 1].index === index){
                 combo.push(this._model.boardMap[posX - 1][posY + 1]);
                 combo.push(this._model.boardMap[posX - 1][posY]);
+                return combo;
             }
         }
 
@@ -58,15 +60,17 @@ export default class MatchDetector{
             if (this._model.boardMap[posX + 2][posY - 1].index === index){
                 combo.push(this._model.boardMap[posX + 2][posY - 1]);
                 combo.push(this._model.boardMap[posX + 2][posY]);
+                return combo;
             }
         }
 
         if (this._model.boardMap[posX + 2][posY + 1].index === index){
             combo.push(this._model.boardMap[posX + 2][posY + 1]);
             combo.push(this._model.boardMap[posX + 2][posY]);
+            return combo;
         }
 
-        return combo;
+        return [];
     }
 
     checkVerticalLine(posX, posY, index)
@@ -78,12 +82,14 @@ export default class MatchDetector{
                 if (this._model.boardMap[posX - 1][posY - 1].index === index) {
                     combo.push(this._model.boardMap[posX - 1][posY - 1]);
                     combo.push(this._model.boardMap[posX][posY - 1]);
+                    return combo;
                 }
             }
 
             if (this._model.boardMap[posX + 1][posY - 1].index === index){
                 combo.push(this._model.boardMap[posX + 1][posY - 1]);
                 combo.push(this._model.boardMap[posX][posY - 1]);
+                return combo;
             }
         }
 
@@ -91,15 +97,17 @@ export default class MatchDetector{
             if (this._model.boardMap[posX - 1][posY + 2].index === index){
                 combo.push(this._model.boardMap[posX - 1][posY + 2]);
                 combo.push(this._model.boardMap[posX][posY + 2]);
+                return combo;
             }
         }
 
         if (this._model.boardMap[posX + 1][posY + 2].index === index){
             combo.push(this._model.boardMap[posX + 1][posY + 2]);
             combo.push(this._model.boardMap[posX][posY + 2]);
+            return combo;
         }
 
-        return combo;
+        return [];
     }
 
     detectMatchesAroundTile(posX, posY){
@@ -126,6 +134,40 @@ export default class MatchDetector{
             tilesToDestroy.push(new Point(posX, posY));
 
         return tilesToDestroy;
+    }
+
+    getAllMatches(){
+        let allMatches = [];
+
+        for (let c = 0; c < this._model.columnsTotal; c++){
+           for (let r = 0; r < this._model.rowsTotal; r++){
+               let matchesH = this.getMatchesH(c, r);
+
+               if (matchesH.length + 1 >= 3)
+               {
+                   matchesH.push(new Point(c, r));
+
+                   for (let i = 0; i < matchesH.length; i++){
+                       if (!allMatches.includes(matchesH[i]))
+                           allMatches.push(matchesH[i]);
+                   }
+               }
+
+               let matchesV = this.getMatchesV(c, r);
+
+               if (matchesV.length + 1 >= 3)
+               {
+                   matchesV.push(new Point(c, r));
+
+                   for (let i = 0; i < matchesV.length; i++){
+                       if (!allMatches.includes(matchesV[i]))
+                           allMatches.push(matchesV[i]);
+                   }
+               }
+           }
+       }
+
+       return allMatches;
     }
 
     getMatchesH(posX, posY){
