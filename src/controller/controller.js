@@ -8,6 +8,7 @@ import GameModel from "../model/gameModel";
 import JSONLoader from "../utils/JSONLoader";
 import MatchDetector from "../components/matchDetector";
 import Tutorial from "../tutorial/tutorial";
+import Point from "../components/point";
 
 
 export default class Controller {
@@ -157,8 +158,6 @@ export default class Controller {
 
     onSwapCanceled(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY){
 
-        console.log(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY, this._gameModel.boardMap[tileGridPosX][tileGridPosY].index, this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY].index);
-
         this._gameView.allowSwipe(true);
 
         let tile = this._gameModel.boardMap[tileGridPosX][tileGridPosY];
@@ -172,32 +171,33 @@ export default class Controller {
     onTileSinkingComplete(gridPosX, gridPosY){
         this._gameModel.boardMap[gridPosX][gridPosY].isSwappable = true;
         this._gameModel.boardMap[gridPosX][gridPosY].isNew = false;
-
-        // let matches = this._matchDetector.detectMatchesAroundTile(gridPosX, gridPosY);
-        // if (matches.length > 0){
-        //     this.moveColumns(matches);
-        //     this._gameView.destroyTiles(matches);
-        // }
-        // else
-        //     this._gameView.allowSwipe(true);
     }
 
     onAllTilesSinkingComplete(){
         let matches = this._matchDetector.getAllMatches();
-        console.log();
+
         if (matches.length > 0){
             this.moveColumns(matches);
             this._gameView.destroyTiles(matches);
         }
-        else
+        else if (this._matchDetector.findAnyPotentialSwap().length > 0){
             this._gameView.allowSwipe(true);
+        }
+        else {
+            // if there's no matches, a random tile will be destroyed
+            let randomPosX = Math.floor(Math.random() * this._gameModel.columnsTotal);
+            let randomPosY = Math.floor(Math.random() * this._gameModel.rowsTotal);
+            let tileToDestroy = [];
+            let randomPoint = new Point(randomPosX, randomPosY);
+            tileToDestroy.push(randomPoint);
+            this.moveColumns(tileToDestroy);
+            this._gameView.destroyTiles(tileToDestroy);
+        }
     }
 
     onNewTileDropped(newTileVO){
         this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY].isSwappable = true;
         this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY].isNew = false;
-
-
 
         let matches = this._matchDetector.detectMatchesAroundTile(newTileVO.gridPosX, newTileVO.gridPosY);
         if (matches.length > 0){

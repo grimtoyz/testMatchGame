@@ -5,6 +5,6 @@
   "tileDropDuration": 0.38,
   "tileDropDelay": 0.07,
   "swipeThresholdMin": 10,
-  "swipeThresholdMax": 50,
+  "swipeThresholdMax": 30,
   "swapDuration": 0.5
 }

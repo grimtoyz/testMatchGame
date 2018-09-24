@@ -249,9 +249,9 @@ export default class MatchDetector{
                {
                    matchesH.push(new Point(c, r));
 
-                   for (let i = 0; i < matchesH.length; i++){
-                       if (!allMatches.includes(matchesH[i]))
-                           allMatches.push(matchesH[i]);
+                   let onlyInMatchesH = matchesH.filter(this.pointComparer(allMatches));
+                   for (let i = 0; i < onlyInMatchesH.length; i++){
+                       allMatches.push(onlyInMatchesH[i]);
                    }
                }
 
@@ -261,15 +261,23 @@ export default class MatchDetector{
                {
                    matchesV.push(new Point(c, r));
 
-                   for (let i = 0; i < matchesV.length; i++){
-                       if (!allMatches.includes(matchesV[i]))
-                           allMatches.push(matchesV[i]);
+                   let onlyInMatchesV = matchesV.filter(this.pointComparer(allMatches));
+                   for (let i = 0; i < onlyInMatchesV.length; i++){
+                       allMatches.push(onlyInMatchesV[i]);
                    }
                }
            }
        }
 
        return allMatches;
+    }
+
+    pointComparer(otherArray){
+        return function(current){
+            return otherArray.filter(function(other){
+                return other.x == current.x && other.y == current.y
+            }).length == 0;
+        }
     }
 
     getMatchesH(posX, posY){

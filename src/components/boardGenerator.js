@@ -14,8 +14,6 @@ export default class BoardGenerator{
     generateBoardWithoutAutoMatches(){
         let board = new Array();
 
-        console.log("new board");
-
         for (let c = 0; c < this._gridWidth; c++){
             let column = new Array();
             board.push(column);
@@ -38,8 +36,6 @@ export default class BoardGenerator{
                 tileVO.gridPosX = c;
                 tileVO.gridPosY = r;
                 column.push(tileVO);
-
-                console.log("x:", c, "y:", r, "index:", tileVO.index);
             }
         }
 
