@@ -283,7 +283,7 @@ export default class GameView extends PIXI.Container{
     checkIfAllTilesDestroyed(){
         this._activeTileDestroyedTweens --;
 
-        if (this._activeTileDestroyedTweens === 0)
+        if (this._activeTileDestroyedTweens <= 0)
             this.onAllTilesDestroyed();
     }
 
@@ -296,10 +296,10 @@ export default class GameView extends PIXI.Container{
     }
 
     sinkTiles(tilesToSink){
+        this._activeTileSinkingTweens = 0;
+
         tilesToSink.forEach(function (tileVO) {
-            // if (tileVO.movementDelta === -1){
-            //     tileVO.movementDelta = this._gameModel.rowsTotal;
-            // }
+            this._activeTileSinkingTweens ++;
 
             let posDeltaY = tileVO.movementDelta;
             let tile = this._tiles[tileVO.gridPosX][tileVO.gridPosY - posDeltaY];
@@ -308,12 +308,8 @@ export default class GameView extends PIXI.Container{
                 tile.alpha = 1;
                 tile.updateTexture(this._gameModel.boardMap[tile.gridPositionX][tile.gridPositionY + posDeltaY].index);
 
-                // tile.y =
                 posDeltaY = this._gameModel.rowsTotal;
-                // tile.y -= 2*posDeltaY*this._cellHeight;
-                // tileVO.movementDelta = this._gameModel.rowsTotal;
                 tile.y = tileVO.gridPosY * this._cellHeight - posDeltaY * this._cellHeight;
-                // console.log("");
 
                 TweenMax.to(
                     tile, this._gameModel.tileDropDuration,
@@ -332,25 +328,28 @@ export default class GameView extends PIXI.Container{
                     }
                 );
         }.bind(this));
-
-        // if (tilesToSink.length == 0)
-
-        // if(tilesToSink.length == 0 && newTileVOs.length != 0){
-        //     newTileVOs.forEach(function (newTileVO) {
-        //         this.dropNewTile(newTileVO);
-        //     }.bind(this));
-        // }
     }
 
     onTileSank(tile, posDeltaY){
         this._tiles[tile.gridPositionX][tile.gridPositionY + posDeltaY] = tile;
         this._tiles[tile.gridPositionX][tile.gridPositionY + posDeltaY].gridPositionY += posDeltaY;
 
+        this._activeTileSinkingTweens --;
+
         this.onTileSinkingAnimComplete(tile.gridPositionX, tile.gridPositionY);
+
+        if (this._activeTileSinkingTweens <= 0)
+            this.onAllTilesSinkingComplete();
+
+
     }
 
     onTileSinkingAnimComplete(callback){
         this.onTileSinkingAnimComplete = callback;
+    }
+
+    onAllTilesSinkingComplete(callback){
+        this.onAllTilesSinkingComplete = callback;
     }
 
     prepareField(){
@@ -420,27 +419,27 @@ export default class GameView extends PIXI.Container{
         );
     }
 
-    dropNewTiles(newTileVOs){
-        newTileVOs.forEach(function (newTileVO) {
-            let tile = this._tiles[newTileVO.gridPosX][newTileVO.gridPosY];
-            tile.y -= this._gameModel.tileDropHeight;
-
-            tile.updateTexture(this._gameModel.boardMap[tile.gridPositionX][tile.gridPositionY].index);
-            tile.alpha = 1;
-
-            this._activeNewTileDropTweens ++;
-
-            TweenMax.to(
-                tile, this._gameModel.tileDropDuration,
-                {ease:Back.easeOut.config(1),
-                    // delay:this._gameModel.newTileDropDelay,
-                    y:newTileVO.gridPosY * this._cellHeight,
-                    onCompleteParams: [newTileVO],
-                    onComplete: this.checkIfAllTilesDropped.bind(this)}
-            );
-        })
-
-    }
+    // dropNewTiles(newTileVOs){
+    //     newTileVOs.forEach(function (newTileVO) {
+    //         let tile = this._tiles[newTileVO.gridPosX][newTileVO.gridPosY];
+    //         tile.y -= this._gameModel.tileDropHeight;
+    //
+    //         tile.updateTexture(this._gameModel.boardMap[tile.gridPositionX][tile.gridPositionY].index);
+    //         tile.alpha = 1;
+    //
+    //         this._activeNewTileDropTweens ++;
+    //
+    //         TweenMax.to(
+    //             tile, this._gameModel.tileDropDuration,
+    //             {ease:Back.easeOut.config(1),
+    //                 // delay:this._gameModel.newTileDropDelay,
+    //                 y:newTileVO.gridPosY * this._cellHeight,
+    //                 onCompleteParams: [newTileVO],
+    //                 onComplete: this.checkIfAllTilesDropped.bind(this)}
+    //         );
+    //     })
+    //
+    // }
 
     checkIfAllTilesDropped(newTileVO){
         this.onNewTileDropped(newTileVO);

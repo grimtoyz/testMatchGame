@@ -51996,14 +51996,14 @@ var BoardGenerator = function () {
         key: "generateBoardWithoutAutoMatches",
         value: function generateBoardWithoutAutoMatches() {
             var board = new Array();
-            var c = void 0;
-            var r = void 0;
 
-            for (c = 0; c < this._gridWidth; c++) {
+            console.log("new board");
+
+            for (var c = 0; c < this._gridWidth; c++) {
                 var column = new Array();
                 board.push(column);
 
-                for (r = 0; r < this._gridHeight; r++) {
+                for (var r = 0; r < this._gridHeight; r++) {
                     var excludedV = -1;
                     if (r > 1) {
                         if (column[r - 2].index == column[r - 1].index) excludedV = column[r - 1].index;
@@ -52018,6 +52018,56 @@ var BoardGenerator = function () {
                     tileVO.gridPosX = c;
                     tileVO.gridPosY = r;
                     column.push(tileVO);
+
+                    console.log("x:", c, "y:", r, "index:", tileVO.index);
+                }
+            }
+
+            return board;
+        }
+    }, {
+        key: "generateDebugBoardWithMatches",
+        value: function generateDebugBoardWithMatches() {
+            var board = [];
+
+            board.push([this.generateTileVO(0), this.generateTileVO(0), this.generateTileVO(4), this.generateTileVO(1), this.generateTileVO(2)]);
+            board.push([this.generateTileVO(2), this.generateTileVO(0), this.generateTileVO(3), this.generateTileVO(4), this.generateTileVO(4)]);
+            board.push([this.generateTileVO(5), this.generateTileVO(3), this.generateTileVO(4), this.generateTileVO(3), this.generateTileVO(4)]);
+            board.push([this.generateTileVO(2), this.generateTileVO(0), this.generateTileVO(2), this.generateTileVO(1), this.generateTileVO(3)]);
+
+            board.push([this.generateTileVO(1), this.generateTileVO(1), this.generateTileVO(4), this.generateTileVO(3), this.generateTileVO(1)]);
+            board.push([this.generateTileVO(2), this.generateTileVO(1), this.generateTileVO(2), this.generateTileVO(1), this.generateTileVO(0)]);
+            board.push([this.generateTileVO(0), this.generateTileVO(5), this.generateTileVO(5), this.generateTileVO(1), this.generateTileVO(2)]);
+            board.push([this.generateTileVO(1), this.generateTileVO(2), this.generateTileVO(4), this.generateTileVO(2), this.generateTileVO(1)]);
+
+            for (var c = 0; c < this._gridWidth; c++) {
+                for (var r = 0; r < this._gridHeight; r++) {
+                    board[c][r].gridPosX = c;
+                    board[c][r].gridPosY = r;
+                }
+            }
+
+            return board;
+        }
+    }, {
+        key: "generateDebugBoardWithoutMatches",
+        value: function generateDebugBoardWithoutMatches() {
+            var board = [];
+
+            board.push([this.generateTileVO(0), this.generateTileVO(1), this.generateTileVO(4), this.generateTileVO(1), this.generateTileVO(2)]);
+            board.push([this.generateTileVO(2), this.generateTileVO(0), this.generateTileVO(3), this.generateTileVO(2), this.generateTileVO(4)]);
+            board.push([this.generateTileVO(5), this.generateTileVO(3), this.generateTileVO(4), this.generateTileVO(0), this.generateTileVO(4)]);
+            board.push([this.generateTileVO(2), this.generateTileVO(0), this.generateTileVO(2), this.generateTileVO(1), this.generateTileVO(5)]);
+
+            board.push([this.generateTileVO(1), this.generateTileVO(1), this.generateTileVO(4), this.generateTileVO(3), this.generateTileVO(2)]);
+            board.push([this.generateTileVO(2), this.generateTileVO(1), this.generateTileVO(2), this.generateTileVO(1), this.generateTileVO(0)]);
+            board.push([this.generateTileVO(0), this.generateTileVO(5), this.generateTileVO(5), this.generateTileVO(4), this.generateTileVO(2)]);
+            board.push([this.generateTileVO(1), this.generateTileVO(2), this.generateTileVO(4), this.generateTileVO(2), this.generateTileVO(1)]);
+
+            for (var c = 0; c < this._gridWidth; c++) {
+                for (var r = 0; r < this._gridHeight; r++) {
+                    board[c][r].gridPosX = c;
+                    board[c][r].gridPosY = r;
                 }
             }
 
@@ -52046,6 +52096,12 @@ var BoardGenerator = function () {
             });
 
             return updatedColumn;
+        }
+    }, {
+        key: "generateTileVO",
+        value: function generateTileVO(type) {
+            var tileVO = new _tileVO2.default(type);
+            return tileVO;
         }
     }, {
         key: "generateRandomTileVO",
@@ -52188,27 +52244,82 @@ var MatchDetector = function () {
     _createClass(MatchDetector, [{
         key: "findAnyPotentialSwap",
         value: function findAnyPotentialSwap() {
-            for (var c = 0; c < this._model.boardMap.length - 2; c++) {
-                for (var r = 0; r < this._model.boardMap[0].length - 2; r++) {
-                    if (this._model.boardMap[c][r].index === this._model.boardMap[c + 1][r].index) {
-                        var combo = this.checkHorizontalLine(c, r, this._model.boardMap[c][r].index);
-                        if (combo.length > 0) {
-                            combo.push(this._model.boardMap[c][r], this._model.boardMap[c + 1][r]);
-                            return combo;
-                        }
+            for (var c = 1; c < this._model.columnsTotal - 1; c++) {
+                for (var r = 1; r < this._model.rowsTotal - 1; r++) {
+                    var combo = this.checkSquare(c, r);
+                    if (combo.length > 1) {
+                        combo.push(this._model.boardMap[c][r]);
+                        return combo;
                     }
+                }
+            }
 
-                    if (this._model.boardMap[c][r].index === this._model.boardMap[c][r + 1].index) {
-                        var _combo = this.checkVerticalLine(c, r, this._model.boardMap[c][r].index);
+            for (var _c = 0; _c < this._model.columnsTotal - 1; _c++) {
+                for (var _r = 0; _r < this._model.rowsTotal; _r++) {
+                    if (this._model.boardMap[_c][_r].index === this._model.boardMap[_c + 1][_r].index) {
+                        var _combo = this.checkHorizontalLine(_c, _r, this._model.boardMap[_c][_r].index);
                         if (_combo.length > 0) {
-                            _combo.push(this._model.boardMap[c][r], this._model.boardMap[c][r + 1]);
+                            _combo.push(this._model.boardMap[_c][_r], this._model.boardMap[_c + 1][_r]);
                             return _combo;
                         }
                     }
                 }
             }
 
+            for (var _c2 = 0; _c2 < this._model.columnsTotal; _c2++) {
+                for (var _r2 = 0; _r2 < this._model.rowsTotal - 1; _r2++) {
+                    if (this._model.boardMap[_c2][_r2].index === this._model.boardMap[_c2][_r2 + 1].index) {
+                        var _combo2 = this.checkVerticalLine(_c2, _r2, this._model.boardMap[_c2][_r2].index);
+                        if (_combo2.length > 0) {
+                            _combo2.push(this._model.boardMap[_c2][_r2], this._model.boardMap[_c2][_r2 + 1]);
+                            return _combo2;
+                        }
+                    }
+                }
+            }
+
             return [];
+        }
+    }, {
+        key: "checkSquare",
+        value: function checkSquare(c, r) {
+            var centerIndex = this._model.boardMap[c][r].index;
+
+            var combo = [];
+
+            if (this._model.boardMap[c - 1][r - 1].index === centerIndex && this._model.boardMap[c + 1][r - 1].index === centerIndex) {
+                combo.push(this._model.boardMap[c - 1][r - 1]);
+                combo.push(this._model.boardMap[c][r - 1]);
+                combo.push(this._model.boardMap[c + 1][r - 1]);
+
+                return combo;
+            }
+
+            if (this._model.boardMap[c + 1][r - 1].index === centerIndex && this._model.boardMap[c + 1][r + 1].index === centerIndex) {
+                combo.push(this._model.boardMap[c + 1][r - 1]);
+                combo.push(this._model.boardMap[c + 1][r]);
+                combo.push(this._model.boardMap[c + 1][r + 1]);
+
+                return combo;
+            }
+
+            if (this._model.boardMap[c + 1][r + 1].index === centerIndex && this._model.boardMap[c - 1][r + 1].index === centerIndex) {
+                combo.push(this._model.boardMap[c + 1][r + 1]);
+                combo.push(this._model.boardMap[c][r + 1]);
+                combo.push(this._model.boardMap[c - 1][r + 1]);
+
+                return combo;
+            }
+
+            if (this._model.boardMap[c - 1][r + 1].index === centerIndex && this._model.boardMap[c - 1][r - 1].index === centerIndex) {
+                combo.push(this._model.boardMap[c - 1][r + 1]);
+                combo.push(this._model.boardMap[c - 1][r]);
+                combo.push(this._model.boardMap[c - 1][r - 1]);
+
+                return combo;
+            }
+
+            return combo;
         }
     }, {
         key: "checkHorizontalLine",
@@ -52220,28 +52331,54 @@ var MatchDetector = function () {
                     if (this._model.boardMap[posX - 1][posY - 1].index === index) {
                         combo.push(this._model.boardMap[posX - 1][posY - 1]);
                         combo.push(this._model.boardMap[posX - 1][posY]);
+                        return combo;
                     }
                 }
 
-                if (this._model.boardMap[posX - 1][posY + 1].index === index) {
-                    combo.push(this._model.boardMap[posX - 1][posY + 1]);
+                if (posY < this._model.rowsTotal - 1) {
+                    if (this._model.boardMap[posX - 1][posY + 1].index === index) {
+                        combo.push(this._model.boardMap[posX - 1][posY + 1]);
+                        combo.push(this._model.boardMap[posX - 1][posY]);
+                        return combo;
+                    }
+                }
+            }
+
+            if (posX < this._model.columnsTotal - 2) {
+                if (posY > 0) {
+                    if (this._model.boardMap[posX + 2][posY - 1].index === index) {
+                        combo.push(this._model.boardMap[posX + 2][posY - 1]);
+                        combo.push(this._model.boardMap[posX + 2][posY]);
+                        return combo;
+                    }
+                }
+
+                if (posY < this._model.rowsTotal - 1) {
+                    if (this._model.boardMap[posX + 2][posY + 1].index === index) {
+                        combo.push(this._model.boardMap[posX + 2][posY + 1]);
+                        combo.push(this._model.boardMap[posX + 2][posY]);
+                        return combo;
+                    }
+                }
+            }
+
+            if (posX > 1) {
+                if (this._model.boardMap[posX - 2][posY].index === index) {
+                    combo.push(this._model.boardMap[posX - 2][posY]);
                     combo.push(this._model.boardMap[posX - 1][posY]);
+                    return combo;
                 }
             }
 
-            if (posY > 0) {
-                if (this._model.boardMap[posX + 2][posY - 1].index === index) {
-                    combo.push(this._model.boardMap[posX + 2][posY - 1]);
+            if (posX < this._model.columnsTotal - 3) {
+                if (this._model.boardMap[posX + 3][posY].index === index) {
                     combo.push(this._model.boardMap[posX + 2][posY]);
+                    combo.push(this._model.boardMap[posX + 3][posY]);
+                    return combo;
                 }
             }
 
-            if (this._model.boardMap[posX + 2][posY + 1].index === index) {
-                combo.push(this._model.boardMap[posX + 2][posY + 1]);
-                combo.push(this._model.boardMap[posX + 2][posY]);
-            }
-
-            return combo;
+            return [];
         }
     }, {
         key: "checkVerticalLine",
@@ -52253,28 +52390,54 @@ var MatchDetector = function () {
                     if (this._model.boardMap[posX - 1][posY - 1].index === index) {
                         combo.push(this._model.boardMap[posX - 1][posY - 1]);
                         combo.push(this._model.boardMap[posX][posY - 1]);
+                        return combo;
                     }
                 }
 
-                if (this._model.boardMap[posX + 1][posY - 1].index === index) {
-                    combo.push(this._model.boardMap[posX + 1][posY - 1]);
-                    combo.push(this._model.boardMap[posX][posY - 1]);
+                if (posX < this._model.columnsTotal - 1) {
+                    if (this._model.boardMap[posX + 1][posY - 1].index === index) {
+                        combo.push(this._model.boardMap[posX + 1][posY - 1]);
+                        combo.push(this._model.boardMap[posX][posY - 1]);
+                        return combo;
+                    }
                 }
             }
 
-            if (posX > 0) {
+            // up
+            if (posY > 1) {
+                if (this._model.boardMap[posX][posY - 2].index === index) {
+                    combo.push(this._model.boardMap[posX][posY - 2]);
+                    combo.push(this._model.boardMap[posX][posY - 1]);
+                    return combo;
+                }
+            }
+
+            // down
+            if (posY < this._model.rowsTotal - 3) {
+                if (this._model.boardMap[posX][posY + 3].index === index) {
+                    combo.push(this._model.boardMap[posX][posY + 2]);
+                    combo.push(this._model.boardMap[posX][posY + 3]);
+                    return combo;
+                }
+            }
+
+            if (posX > 0 && posY < this._model.rowsTotal - 2) {
                 if (this._model.boardMap[posX - 1][posY + 2].index === index) {
                     combo.push(this._model.boardMap[posX - 1][posY + 2]);
                     combo.push(this._model.boardMap[posX][posY + 2]);
+                    return combo;
                 }
             }
 
-            if (this._model.boardMap[posX + 1][posY + 2].index === index) {
-                combo.push(this._model.boardMap[posX + 1][posY + 2]);
-                combo.push(this._model.boardMap[posX][posY + 2]);
+            if (posX < this._model.columnsTotal - 1 && posY < this._model.rowsTotal - 2) {
+                if (this._model.boardMap[posX + 1][posY + 2].index === index) {
+                    combo.push(this._model.boardMap[posX + 1][posY + 2]);
+                    combo.push(this._model.boardMap[posX][posY + 2]);
+                    return combo;
+                }
             }
 
-            return combo;
+            return [];
         }
     }, {
         key: "detectMatchesAroundTile",
@@ -52299,6 +52462,37 @@ var MatchDetector = function () {
             if (tilesToDestroy.length > 0) tilesToDestroy.push(new _point4.default(posX, posY));
 
             return tilesToDestroy;
+        }
+    }, {
+        key: "getAllMatches",
+        value: function getAllMatches() {
+            var allMatches = [];
+
+            for (var c = 0; c < this._model.columnsTotal; c++) {
+                for (var r = 0; r < this._model.rowsTotal; r++) {
+                    var matchesH = this.getMatchesH(c, r);
+
+                    if (matchesH.length + 1 >= 3) {
+                        matchesH.push(new _point4.default(c, r));
+
+                        for (var i = 0; i < matchesH.length; i++) {
+                            if (!allMatches.includes(matchesH[i])) allMatches.push(matchesH[i]);
+                        }
+                    }
+
+                    var matchesV = this.getMatchesV(c, r);
+
+                    if (matchesV.length + 1 >= 3) {
+                        matchesV.push(new _point4.default(c, r));
+
+                        for (var _i = 0; _i < matchesV.length; _i++) {
+                            if (!allMatches.includes(matchesV[_i])) allMatches.push(matchesV[_i]);
+                        }
+                    }
+                }
+            }
+
+            return allMatches;
         }
     }, {
         key: "getMatchesH",
@@ -52534,10 +52728,6 @@ var _tutorial = __webpack_require__(/*! ../tutorial/tutorial */ "./src/tutorial/
 
 var _tutorial2 = _interopRequireDefault(_tutorial);
 
-var _point = __webpack_require__(/*! ../components/point */ "./src/components/point.js");
-
-var _point2 = _interopRequireDefault(_point);
-
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -52585,6 +52775,7 @@ var Controller = function () {
 
             while (this._matchDetector.findAnyPotentialSwap().length <= 0) {
                 this._gameModel.boardMap = this._boardGenerator.generateBoardWithoutAutoMatches();
+                this._matchDetector = new _matchDetector2.default(this._gameModel);
             }
         }
     }, {
@@ -52613,6 +52804,7 @@ var Controller = function () {
             this._gameView.onAllTilesDestroyed(this.onAllTilesDestroyed.bind(this));
             this._gameView.onSwapCancelAnimationFinished(this.onSwapCanceled.bind(this));
             this._gameView.onTileSinkingAnimComplete(this.onTileSinkingComplete.bind(this));
+            this._gameView.onAllTilesSinkingComplete(this.onAllTilesSinkingComplete.bind(this));
             this._gameView.onNewTileDropped(this.onNewTileDropped.bind(this));
 
             this._tutorial.onTaskCompleted(this.onTutorialCompleted.bind(this));
@@ -52696,6 +52888,9 @@ var Controller = function () {
     }, {
         key: "onSwapCanceled",
         value: function onSwapCanceled(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY) {
+
+            console.log(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY, this._gameModel.boardMap[tileGridPosX][tileGridPosY].index, this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY].index);
+
             this._gameView.allowSwipe(true);
 
             var tile = this._gameModel.boardMap[tileGridPosX][tileGridPosY];
@@ -52711,18 +52906,23 @@ var Controller = function () {
             this._gameModel.boardMap[gridPosX][gridPosY].isSwappable = true;
             this._gameModel.boardMap[gridPosX][gridPosY].isNew = false;
 
-            var matches = this._matchDetector.detectMatchesAroundTile(gridPosX, gridPosY);
+            // let matches = this._matchDetector.detectMatchesAroundTile(gridPosX, gridPosY);
+            // if (matches.length > 0){
+            //     this.moveColumns(matches);
+            //     this._gameView.destroyTiles(matches);
+            // }
+            // else
+            //     this._gameView.allowSwipe(true);
+        }
+    }, {
+        key: "onAllTilesSinkingComplete",
+        value: function onAllTilesSinkingComplete() {
+            var matches = this._matchDetector.getAllMatches();
+            console.log();
             if (matches.length > 0) {
                 this.moveColumns(matches);
                 this._gameView.destroyTiles(matches);
             } else this._gameView.allowSwipe(true);
-            // else if (this._matchDetector.findAnyPotentialSwap().length > 0)
-            //     this._gameView.allowSwipe(true);
-            // else {
-            //     let tilesToDestroy = [new Point(Math.random() * this._gameModel.columnsTotal, Math.random() * this._gameModel.rowsTotal)];
-            //     this.moveColumns(tilesToDestroy);
-            //     this._gameView.destroyTiles();
-            // }
         }
     }, {
         key: "onNewTileDropped",
@@ -53026,15 +53226,21 @@ var Tutorial = function (_PIXI$Container) {
             this._overlay = new PIXI.Graphics();
 
             this._overlay.beginFill(0x24363d);
-            this._overlay.alpha = 0.7;
 
             this._overlay.drawRect(0, 0, this._width, this._height);
             var mask = this.createMask();
             this._overlay.addChild(mask);
             this._overlay.mask = mask;
 
+            this._overlay.alpha = 0;
             this.addChild(this._overlay);
+
+            _TweenMax2.default.to(this._overlay, 1, { alpha: 0.7,
+                onComplete: this.onFadeInComplete.bind(this) });
         }
+    }, {
+        key: "onFadeInComplete",
+        value: function onFadeInComplete() {}
     }, {
         key: "createMask",
         value: function createMask() {
@@ -53053,8 +53259,6 @@ var Tutorial = function (_PIXI$Container) {
             for (var c = 0; c < this._gameModel.columnsTotal; c++) {
                 for (var r = 0; r < this._gameModel.rowsTotal; r++) {
                     maskRects.push(this._gameModel.boardMap[c][r]);
-                    // if (!this._combo.includes(this._gameModel.boardMap[c][r]))
-                    //     mask.drawRect(this._field.x + this._gameView.FIELD_PADDING + this._gameModel.boardMap[c][r].gridPosX * this._cellWidth, this._gameView.FIELD_PADDING + this._field.y + this._gameModel.boardMap[c][r].gridPosY * this._cellHeight, this._cellWidth, this._cellHeight);
                 }
             }
 
@@ -53082,11 +53286,6 @@ var Tutorial = function (_PIXI$Container) {
         value: function onTweenComplete() {
             this.removeChild(this._overlay);
         }
-
-        // resize(){
-        //     this._overlay.width = this._appView.renderer.width;
-        // }
-
     }]);
 
     return Tutorial;
@@ -53454,7 +53653,7 @@ var GameView = function (_PIXI$Container) {
         value: function checkIfAllTilesDestroyed() {
             this._activeTileDestroyedTweens--;
 
-            if (this._activeTileDestroyedTweens === 0) this.onAllTilesDestroyed();
+            if (this._activeTileDestroyedTweens <= 0) this.onAllTilesDestroyed();
         }
 
         // onTileDestroyedAnimationComplete(callback){
@@ -53469,10 +53668,10 @@ var GameView = function (_PIXI$Container) {
     }, {
         key: "sinkTiles",
         value: function sinkTiles(tilesToSink) {
+            this._activeTileSinkingTweens = 0;
+
             tilesToSink.forEach(function (tileVO) {
-                // if (tileVO.movementDelta === -1){
-                //     tileVO.movementDelta = this._gameModel.rowsTotal;
-                // }
+                this._activeTileSinkingTweens++;
 
                 var posDeltaY = tileVO.movementDelta;
                 var tile = this._tiles[tileVO.gridPosX][tileVO.gridPosY - posDeltaY];
@@ -53481,12 +53680,8 @@ var GameView = function (_PIXI$Container) {
                     tile.alpha = 1;
                     tile.updateTexture(this._gameModel.boardMap[tile.gridPositionX][tile.gridPositionY + posDeltaY].index);
 
-                    // tile.y =
                     posDeltaY = this._gameModel.rowsTotal;
-                    // tile.y -= 2*posDeltaY*this._cellHeight;
-                    // tileVO.movementDelta = this._gameModel.rowsTotal;
                     tile.y = tileVO.gridPosY * this._cellHeight - posDeltaY * this._cellHeight;
-                    // console.log("");
 
                     _TweenMax2.default.to(tile, this._gameModel.tileDropDuration, { ease: Back.easeOut, y: tile.y + posDeltaY * this._cellHeight,
                         onCompleteParams: [tile, tileVO.movementDelta],
@@ -53497,14 +53692,6 @@ var GameView = function (_PIXI$Container) {
                     onComplete: this.onTileSank.bind(this)
                 });
             }.bind(this));
-
-            // if (tilesToSink.length == 0)
-
-            // if(tilesToSink.length == 0 && newTileVOs.length != 0){
-            //     newTileVOs.forEach(function (newTileVO) {
-            //         this.dropNewTile(newTileVO);
-            //     }.bind(this));
-            // }
         }
     }, {
         key: "onTileSank",
@@ -53512,12 +53699,21 @@ var GameView = function (_PIXI$Container) {
             this._tiles[tile.gridPositionX][tile.gridPositionY + posDeltaY] = tile;
             this._tiles[tile.gridPositionX][tile.gridPositionY + posDeltaY].gridPositionY += posDeltaY;
 
+            this._activeTileSinkingTweens--;
+
             this.onTileSinkingAnimComplete(tile.gridPositionX, tile.gridPositionY);
+
+            if (this._activeTileSinkingTweens <= 0) this.onAllTilesSinkingComplete();
         }
     }, {
         key: "onTileSinkingAnimComplete",
         value: function onTileSinkingAnimComplete(callback) {
             this.onTileSinkingAnimComplete = callback;
+        }
+    }, {
+        key: "onAllTilesSinkingComplete",
+        value: function onAllTilesSinkingComplete(callback) {
+            this.onAllTilesSinkingComplete = callback;
         }
     }, {
         key: "prepareField",
@@ -53584,25 +53780,29 @@ var GameView = function (_PIXI$Container) {
                 onCompleteParams: [newTileVO],
                 onComplete: this.onNewTileDropped.bind(this) });
         }
-    }, {
-        key: "dropNewTiles",
-        value: function dropNewTiles(newTileVOs) {
-            newTileVOs.forEach(function (newTileVO) {
-                var tile = this._tiles[newTileVO.gridPosX][newTileVO.gridPosY];
-                tile.y -= this._gameModel.tileDropHeight;
 
-                tile.updateTexture(this._gameModel.boardMap[tile.gridPositionX][tile.gridPositionY].index);
-                tile.alpha = 1;
+        // dropNewTiles(newTileVOs){
+        //     newTileVOs.forEach(function (newTileVO) {
+        //         let tile = this._tiles[newTileVO.gridPosX][newTileVO.gridPosY];
+        //         tile.y -= this._gameModel.tileDropHeight;
+        //
+        //         tile.updateTexture(this._gameModel.boardMap[tile.gridPositionX][tile.gridPositionY].index);
+        //         tile.alpha = 1;
+        //
+        //         this._activeNewTileDropTweens ++;
+        //
+        //         TweenMax.to(
+        //             tile, this._gameModel.tileDropDuration,
+        //             {ease:Back.easeOut.config(1),
+        //                 // delay:this._gameModel.newTileDropDelay,
+        //                 y:newTileVO.gridPosY * this._cellHeight,
+        //                 onCompleteParams: [newTileVO],
+        //                 onComplete: this.checkIfAllTilesDropped.bind(this)}
+        //         );
+        //     })
+        //
+        // }
 
-                this._activeNewTileDropTweens++;
-
-                _TweenMax2.default.to(tile, this._gameModel.tileDropDuration, { ease: Back.easeOut.config(1),
-                    // delay:this._gameModel.newTileDropDelay,
-                    y: newTileVO.gridPosY * this._cellHeight,
-                    onCompleteParams: [newTileVO],
-                    onComplete: this.checkIfAllTilesDropped.bind(this) });
-            });
-        }
     }, {
         key: "checkIfAllTilesDropped",
         value: function checkIfAllTilesDropped(newTileVO) {

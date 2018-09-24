@@ -13,14 +13,14 @@ export default class BoardGenerator{
 
     generateBoardWithoutAutoMatches(){
         let board = new Array();
-        let c;
-        let r;
 
-        for (c=0; c<this._gridWidth; c++){
+        console.log("new board");
+
+        for (let c = 0; c < this._gridWidth; c++){
             let column = new Array();
             board.push(column);
 
-            for (r=0; r < this._gridHeight; r++)
+            for (let r = 0; r < this._gridHeight; r++)
             {
                 let excludedV = -1;
                 if (r > 1){
@@ -38,6 +38,54 @@ export default class BoardGenerator{
                 tileVO.gridPosX = c;
                 tileVO.gridPosY = r;
                 column.push(tileVO);
+
+                console.log("x:", c, "y:", r, "index:", tileVO.index);
+            }
+        }
+
+        return board;
+    }
+
+    generateDebugBoardWithMatches(){
+        let board = [];
+
+        board.push([this.generateTileVO(0), this.generateTileVO(0), this.generateTileVO(4), this.generateTileVO(1), this.generateTileVO(2)]);
+        board.push([this.generateTileVO(2), this.generateTileVO(0), this.generateTileVO(3), this.generateTileVO(4), this.generateTileVO(4)]);
+        board.push([this.generateTileVO(5), this.generateTileVO(3), this.generateTileVO(4), this.generateTileVO(3), this.generateTileVO(4)]);
+        board.push([this.generateTileVO(2), this.generateTileVO(0), this.generateTileVO(2), this.generateTileVO(1), this.generateTileVO(3)]);
+
+        board.push([this.generateTileVO(1), this.generateTileVO(1), this.generateTileVO(4), this.generateTileVO(3), this.generateTileVO(1)]);
+        board.push([this.generateTileVO(2), this.generateTileVO(1), this.generateTileVO(2), this.generateTileVO(1), this.generateTileVO(0)]);
+        board.push([this.generateTileVO(0), this.generateTileVO(5), this.generateTileVO(5), this.generateTileVO(1), this.generateTileVO(2)]);
+        board.push([this.generateTileVO(1), this.generateTileVO(2), this.generateTileVO(4), this.generateTileVO(2), this.generateTileVO(1)]);
+
+        for (let c = 0; c < this._gridWidth; c++){
+            for (let r = 0; r < this._gridHeight; r++){
+                board[c][r].gridPosX = c;
+                board[c][r].gridPosY = r;
+            }
+        }
+
+        return board;
+    }
+
+    generateDebugBoardWithoutMatches(){
+        let board = [];
+
+        board.push([this.generateTileVO(0), this.generateTileVO(1), this.generateTileVO(4), this.generateTileVO(1), this.generateTileVO(2)]);
+        board.push([this.generateTileVO(2), this.generateTileVO(0), this.generateTileVO(3), this.generateTileVO(2), this.generateTileVO(4)]);
+        board.push([this.generateTileVO(5), this.generateTileVO(3), this.generateTileVO(4), this.generateTileVO(0), this.generateTileVO(4)]);
+        board.push([this.generateTileVO(2), this.generateTileVO(0), this.generateTileVO(2), this.generateTileVO(1), this.generateTileVO(5)]);
+
+        board.push([this.generateTileVO(1), this.generateTileVO(1), this.generateTileVO(4), this.generateTileVO(3), this.generateTileVO(2)]);
+        board.push([this.generateTileVO(2), this.generateTileVO(1), this.generateTileVO(2), this.generateTileVO(1), this.generateTileVO(0)]);
+        board.push([this.generateTileVO(0), this.generateTileVO(5), this.generateTileVO(5), this.generateTileVO(4), this.generateTileVO(2)]);
+        board.push([this.generateTileVO(1), this.generateTileVO(2), this.generateTileVO(4), this.generateTileVO(2), this.generateTileVO(1)]);
+
+        for (let c = 0; c < this._gridWidth; c++){
+            for (let r = 0; r < this._gridHeight; r++){
+                board[c][r].gridPosX = c;
+                board[c][r].gridPosY = r;
             }
         }
 
@@ -61,6 +109,11 @@ export default class BoardGenerator{
         });
 
         return updatedColumn;
+    }
+
+    generateTileVO(type){
+        let tileVO = new TileVO(type);
+        return tileVO;
     }
 
     generateRandomTileVO(excludedTypeH=-1, excludedTypeV=-1){

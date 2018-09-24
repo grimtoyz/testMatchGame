@@ -8,7 +8,6 @@ import GameModel from "../model/gameModel";
 import JSONLoader from "../utils/JSONLoader";
 import MatchDetector from "../components/matchDetector";
 import Tutorial from "../tutorial/tutorial";
-import Point from "../components/point";
 
 
 export default class Controller {
@@ -49,6 +48,7 @@ export default class Controller {
         while (this._matchDetector.findAnyPotentialSwap().length <= 0)
         {
             this._gameModel.boardMap = this._boardGenerator.generateBoardWithoutAutoMatches();
+            this._matchDetector = new MatchDetector(this._gameModel);
         }
     }
 
@@ -77,6 +77,7 @@ export default class Controller {
         this._gameView.onAllTilesDestroyed(this.onAllTilesDestroyed.bind(this));
         this._gameView.onSwapCancelAnimationFinished(this.onSwapCanceled.bind(this));
         this._gameView.onTileSinkingAnimComplete(this.onTileSinkingComplete.bind(this));
+        this._gameView.onAllTilesSinkingComplete(this.onAllTilesSinkingComplete.bind(this));
         this._gameView.onNewTileDropped(this.onNewTileDropped.bind(this));
 
         this._tutorial.onTaskCompleted(this.onTutorialCompleted.bind(this));
@@ -121,7 +122,7 @@ export default class Controller {
             this._gameModel.boardMap[x][y] = this._boardGenerator.generateRandomTileVO();
         }
 
-        for (let i=0; i < this._gameModel.columnsTotal; i++){
+        for (let i = 0; i < this._gameModel.columnsTotal; i++){
             this._gameModel.boardMap[i] = this._boardGenerator.moveDestroyedTilesToTop(this._gameModel.boardMap[i]);
         }
     }
@@ -138,7 +139,7 @@ export default class Controller {
     onAllTilesDestroyed(){
         let tilesToSink = [];
 
-        for (let c=0; c < this._gameModel.columnsTotal; c++){
+        for (let c = 0; c < this._gameModel.columnsTotal; c++){
             for (let r = 0; r < this._gameModel.rowsTotal; r++){
                 let tileVO = this._gameModel.boardMap[c][r];
 
@@ -155,6 +156,9 @@ export default class Controller {
     }
 
     onSwapCanceled(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY){
+
+        console.log(tileGridPosX, tileGridPosY, neighbourGridPosX, neighbourGridPosY, this._gameModel.boardMap[tileGridPosX][tileGridPosY].index, this._gameModel.boardMap[neighbourGridPosX][neighbourGridPosY].index);
+
         this._gameView.allowSwipe(true);
 
         let tile = this._gameModel.boardMap[tileGridPosX][tileGridPosY];
@@ -169,20 +173,24 @@ export default class Controller {
         this._gameModel.boardMap[gridPosX][gridPosY].isSwappable = true;
         this._gameModel.boardMap[gridPosX][gridPosY].isNew = false;
 
-        let matches = this._matchDetector.detectMatchesAroundTile(gridPosX, gridPosY);
+        // let matches = this._matchDetector.detectMatchesAroundTile(gridPosX, gridPosY);
+        // if (matches.length > 0){
+        //     this.moveColumns(matches);
+        //     this._gameView.destroyTiles(matches);
+        // }
+        // else
+        //     this._gameView.allowSwipe(true);
+    }
+
+    onAllTilesSinkingComplete(){
+        let matches = this._matchDetector.getAllMatches();
+        console.log();
         if (matches.length > 0){
             this.moveColumns(matches);
             this._gameView.destroyTiles(matches);
         }
         else
             this._gameView.allowSwipe(true);
-        // else if (this._matchDetector.findAnyPotentialSwap().length > 0)
-        //     this._gameView.allowSwipe(true);
-        // else {
-        //     let tilesToDestroy = [new Point(Math.random() * this._gameModel.columnsTotal, Math.random() * this._gameModel.rowsTotal)];
-        //     this.moveColumns(tilesToDestroy);
-        //     this._gameView.destroyTiles();
-        // }
     }
 
     onNewTileDropped(newTileVO){

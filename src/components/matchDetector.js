@@ -11,9 +11,21 @@ export default class MatchDetector{
     }
 
     findAnyPotentialSwap(){
-        for (let c = 0; c < this._model.boardMap.length - 2; c++)
+        for (let c = 1; c < this._model.columnsTotal - 1; c++)
         {
-            for (let r = 0; r < this._model.boardMap[0].length - 2; r++)
+            for (let r = 1; r < this._model.rowsTotal - 1; r++)
+            {
+                let combo = this.checkSquare(c, r);
+                if (combo.length > 1){
+                    combo.push(this._model.boardMap[c][r]);
+                    return combo;
+                }
+            }
+        }
+
+        for (let c = 0; c < this._model.columnsTotal - 1; c++)
+        {
+            for (let r = 0; r < this._model.rowsTotal; r++)
             {
                 if (this._model.boardMap[c][r].index === this._model.boardMap[c+1][r].index){
                     let combo = this.checkHorizontalLine(c, r, this._model.boardMap[c][r].index);
@@ -22,7 +34,13 @@ export default class MatchDetector{
                         return combo;
                     }
                 }
+            }
+        }
 
+        for (let c = 0; c < this._model.columnsTotal; c++)
+        {
+            for (let r = 0; r < this._model.rowsTotal - 1; r++)
+            {
                 if (this._model.boardMap[c][r].index === this._model.boardMap[c][r+1].index){
                     let combo = this.checkVerticalLine(c, r, this._model.boardMap[c][r].index);
                     if (combo.length > 0){
@@ -34,6 +52,46 @@ export default class MatchDetector{
         }
 
         return [];
+    }
+
+    checkSquare(c, r){
+        let centerIndex = this._model.boardMap[c][r].index;
+
+        let combo = [];
+
+        if (this._model.boardMap[c-1][r-1].index === centerIndex && this._model.boardMap[c+1][r-1].index === centerIndex){
+            combo.push(this._model.boardMap[c-1][r-1]);
+            combo.push(this._model.boardMap[c][r-1]);
+            combo.push(this._model.boardMap[c+1][r-1]);
+
+            return combo;
+        }
+
+        if (this._model.boardMap[c+1][r-1].index === centerIndex && this._model.boardMap[c+1][r+1].index === centerIndex){
+            combo.push(this._model.boardMap[c+1][r-1]);
+            combo.push(this._model.boardMap[c+1][r]);
+            combo.push(this._model.boardMap[c+1][r+1]);
+
+            return combo;
+        }
+
+        if (this._model.boardMap[c+1][r+1].index === centerIndex && this._model.boardMap[c-1][r+1].index === centerIndex){
+            combo.push(this._model.boardMap[c+1][r+1]);
+            combo.push(this._model.boardMap[c][r+1]);
+            combo.push(this._model.boardMap[c-1][r+1]);
+
+            return combo;
+        }
+
+        if (this._model.boardMap[c-1][r+1].index === centerIndex && this._model.boardMap[c-1][r-1].index === centerIndex){
+            combo.push(this._model.boardMap[c-1][r+1]);
+            combo.push(this._model.boardMap[c-1][r]);
+            combo.push(this._model.boardMap[c-1][r-1]);
+
+            return combo;
+        }
+
+        return combo;
     }
 
     checkHorizontalLine(posX, posY, index)
@@ -49,25 +107,47 @@ export default class MatchDetector{
                 }
             }
 
-            if (this._model.boardMap[posX - 1][posY + 1].index === index){
-                combo.push(this._model.boardMap[posX - 1][posY + 1]);
-                combo.push(this._model.boardMap[posX - 1][posY]);
+            if (posY < this._model.rowsTotal - 1){
+                if (this._model.boardMap[posX - 1][posY + 1].index === index){
+                    combo.push(this._model.boardMap[posX - 1][posY + 1]);
+                    combo.push(this._model.boardMap[posX - 1][posY]);
+                    return combo;
+                }
+            }
+        }
+
+        if (posX < this._model.columnsTotal - 2){
+            if (posY > 0){
+                if (this._model.boardMap[posX + 2][posY - 1].index === index){
+                    combo.push(this._model.boardMap[posX + 2][posY - 1]);
+                    combo.push(this._model.boardMap[posX + 2][posY]);
+                    return combo;
+                }
+            }
+
+            if (posY < this._model.rowsTotal - 1){
+                if (this._model.boardMap[posX + 2][posY + 1].index === index){
+                    combo.push(this._model.boardMap[posX + 2][posY + 1]);
+                    combo.push(this._model.boardMap[posX + 2][posY]);
+                    return combo;
+                }
+            }
+        }
+
+        if (posX > 1){
+            if (this._model.boardMap[posX - 2][posY].index === index) {
+                combo.push(this._model.boardMap[posX - 2][posY]);
+                combo.push(this._model.boardMap[posX -1][posY]);
                 return combo;
             }
         }
 
-        if (posY > 0){
-            if (this._model.boardMap[posX + 2][posY - 1].index === index){
-                combo.push(this._model.boardMap[posX + 2][posY - 1]);
+        if (posX < this._model.columnsTotal - 3){
+            if (this._model.boardMap[posX + 3][posY].index === index) {
                 combo.push(this._model.boardMap[posX + 2][posY]);
+                combo.push(this._model.boardMap[posX + 3][posY]);
                 return combo;
             }
-        }
-
-        if (this._model.boardMap[posX + 2][posY + 1].index === index){
-            combo.push(this._model.boardMap[posX + 2][posY + 1]);
-            combo.push(this._model.boardMap[posX + 2][posY]);
-            return combo;
         }
 
         return [];
@@ -86,14 +166,34 @@ export default class MatchDetector{
                 }
             }
 
-            if (this._model.boardMap[posX + 1][posY - 1].index === index){
-                combo.push(this._model.boardMap[posX + 1][posY - 1]);
+            if (posX < this._model.columnsTotal - 1){
+                if (this._model.boardMap[posX + 1][posY - 1].index === index){
+                    combo.push(this._model.boardMap[posX + 1][posY - 1]);
+                    combo.push(this._model.boardMap[posX][posY - 1]);
+                    return combo;
+                }
+            }
+        }
+
+        // up
+        if (posY > 1){
+            if (this._model.boardMap[posX][posY - 2].index === index) {
+                combo.push(this._model.boardMap[posX][posY - 2]);
                 combo.push(this._model.boardMap[posX][posY - 1]);
                 return combo;
             }
         }
 
-        if (posX > 0){
+        // down
+        if (posY < this._model.rowsTotal - 3){
+            if (this._model.boardMap[posX][posY + 3].index === index) {
+                combo.push(this._model.boardMap[posX][posY + 2]);
+                combo.push(this._model.boardMap[posX][posY + 3]);
+                return combo;
+            }
+        }
+
+        if (posX > 0 && posY < this._model.rowsTotal - 2){
             if (this._model.boardMap[posX - 1][posY + 2].index === index){
                 combo.push(this._model.boardMap[posX - 1][posY + 2]);
                 combo.push(this._model.boardMap[posX][posY + 2]);
@@ -101,10 +201,12 @@ export default class MatchDetector{
             }
         }
 
-        if (this._model.boardMap[posX + 1][posY + 2].index === index){
-            combo.push(this._model.boardMap[posX + 1][posY + 2]);
-            combo.push(this._model.boardMap[posX][posY + 2]);
-            return combo;
+        if (posX < this._model.columnsTotal - 1 && posY < this._model.rowsTotal - 2){
+            if (this._model.boardMap[posX + 1][posY + 2].index === index){
+                combo.push(this._model.boardMap[posX + 1][posY + 2]);
+                combo.push(this._model.boardMap[posX][posY + 2]);
+                return combo;
+            }
         }
 
         return [];

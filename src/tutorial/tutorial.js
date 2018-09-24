@@ -45,14 +45,24 @@ export default class Tutorial extends PIXI.Container{
         this._overlay = new PIXI.Graphics();
 
         this._overlay.beginFill(0x24363d);
-        this._overlay.alpha = 0.7;
 
         this._overlay.drawRect(0, 0, this._width, this._height);
         let mask = this.createMask();
         this._overlay.addChild(mask);
         this._overlay.mask = mask;
 
+        this._overlay.alpha = 0;
         this.addChild(this._overlay);
+
+        TweenMax.to(
+            this._overlay, 1,
+            {   alpha:0.7,
+                onComplete: this.onFadeInComplete.bind(this)}
+        );
+    }
+
+    onFadeInComplete(){
+
     }
 
     createMask(){
@@ -71,8 +81,6 @@ export default class Tutorial extends PIXI.Container{
         for (let c = 0; c < this._gameModel.columnsTotal; c++){
             for (let r = 0; r < this._gameModel.rowsTotal; r++){
                 maskRects.push(this._gameModel.boardMap[c][r]);
-                // if (!this._combo.includes(this._gameModel.boardMap[c][r]))
-                //     mask.drawRect(this._field.x + this._gameView.FIELD_PADDING + this._gameModel.boardMap[c][r].gridPosX * this._cellWidth, this._gameView.FIELD_PADDING + this._field.y + this._gameModel.boardMap[c][r].gridPosY * this._cellHeight, this._cellWidth, this._cellHeight);
             }
         }
 
@@ -104,8 +112,4 @@ export default class Tutorial extends PIXI.Container{
     onTweenComplete(){
         this.removeChild(this._overlay);
     }
-
-    // resize(){
-    //     this._overlay.width = this._appView.renderer.width;
-    // }
 }
