@@ -98,10 +98,7 @@ export default class BoardGenerator{
         let updatedColumn = destroyedTiles.concat(sinkingTiles);
 
         updatedColumn.forEach(function (item, index) {
-            // if (item.isNew)
-            //     item.movementDelta = -1;
-            // else
-                item.movementDelta = index - item.movementDelta;
+            item.movementDelta = index - item.movementDelta;
         });
 
         return updatedColumn;

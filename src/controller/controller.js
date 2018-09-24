@@ -208,7 +208,7 @@ export default class Controller {
             let newTileVO = this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY];
             this._gameView.dropNewTile(newTileVO);
         }
-        else if (this.isGamefieldStatic) // 2DO - check if no matches
+        else if (this.isGamefieldStatic)
             this._gameView.allowSwipe(true);
     }
 
@@ -242,9 +242,5 @@ export default class Controller {
         }
 
         return isFieldStatic;
-    }
-
-    get view(){
-        return this._gameView;
     }
 }

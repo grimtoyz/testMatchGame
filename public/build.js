@@ -52085,9 +52085,6 @@ var BoardGenerator = function () {
             var updatedColumn = destroyedTiles.concat(sinkingTiles);
 
             updatedColumn.forEach(function (item, index) {
-                // if (item.isNew)
-                //     item.movementDelta = -1;
-                // else
                 item.movementDelta = index - item.movementDelta;
             });
 
@@ -52949,8 +52946,7 @@ var Controller = function () {
             } else if (this._gameModel.boardMap[newTileVO.gridPosX][newTileVO.gridPosY].isNew) {
                 var _newTileVO = this._gameModel.boardMap[_newTileVO.gridPosX][_newTileVO.gridPosY];
                 this._gameView.dropNewTile(_newTileVO);
-            } else if (this.isGamefieldStatic) // 2DO - check if no matches
-                this._gameView.allowSwipe(true);
+            } else if (this.isGamefieldStatic) this._gameView.allowSwipe(true);
         }
     }, {
         key: "setAllTilesToSwappable",
@@ -52985,11 +52981,6 @@ var Controller = function () {
             }
 
             return isFieldStatic;
-        }
-    }, {
-        key: "view",
-        get: function get() {
-            return this._gameView;
         }
     }]);
 
@@ -53771,76 +53762,11 @@ var GameView = function (_PIXI$Container) {
                 onCompleteParams: [newTileVO],
                 onComplete: this.onNewTileDropped.bind(this) });
         }
-
-        // checkIfAllTilesDropped(newTileVO){
-        //     this.onNewTileDropped(newTileVO);
-        //
-        //     this._activeNewTileDropTweens --;
-        //     if (this._activeNewTileDropTweens == 0)
-        //         this.onAllTilesDropped();
-        // }
-
     }, {
         key: "onNewTileDropped",
         value: function onNewTileDropped(callback) {
             this.onNewTileDropped = callback;
         }
-    }, {
-        key: "onAllTilesDropped",
-        value: function onAllTilesDropped(callback) {
-            this.onAllTilesDropped = callback;
-        }
-
-        // onTweenCompleted(){
-        //     this._activeDropTweensAmount --;
-        //     if (this._activeDropTweensAmount == 0)
-        //         alert("complete");
-        // }
-
-    }, {
-        key: "tilesDropped",
-        value: function tilesDropped() {}
-
-        // createTileColumn(rowsTotal, boae){
-        //     for (r=0; r < rowsTotal; r++){
-        //         let index = ;
-        //         let tile = new GameTile(index);
-        //         this._fieldContainer.addChild(tile);
-        //     }
-        // }
-
-        // onResize(ratio){
-        //     // this._appView.renderer.resize(window.innerWidth, window.innerHeight);
-        //     // this._backgroundContainer.width = this._appView.width;
-        //     // this._backgroundContainer.height = this._appView.height;
-        //     let screenWidth = this._appView.width;
-        //     let screenHeight = this._appView.height;
-        //
-        //     var imageRatio = 1280 / 1080;
-        //     var screenRatio = screenWidth / screenHeight;
-        //     let scale;
-        //     if(screenRatio >= imageRatio) {
-        //         // scale = screenHeight / this._backgroundContainer.height;
-        //         scale = screenWidth / 1280;
-        //         // imageSprite.height = imageSprite.height / (imageSprite.width / containerWidth);
-        //         // imageSprite.width = containerWidth;
-        //         // imageSprite.position.x = 0;
-        //         // imageSprite.position.y = (containerHeight - imageSprite.height) / 2;
-        //     }else{
-        //         // imageSprite.width = imageSprite.width / (imageSprite.height / containerHeight);
-        //         // imageSprite.height = containerHeight;
-        //         // imageSprite.position.y = 0;
-        //         // imageSprite.position.x = (containerWidth - imageSprite.width) / 2;
-        //         scale = screenHeight / 1080;
-        //         // scale = screenWidth / this._backgroundContainer.width;
-        //     }
-        //
-        //     scale = screenRatio > 1 ? this._appView.renderer.height/500 : this._appView.renderer.width/500;
-        //
-        //     // this._backgroundContainer.scale.x = this._backgroundContainer.scale.y = scale/ratio;
-        //     this.fieldContainer.scale.x = this.fieldContainer.scale.y = scale;
-        // }
-
     }, {
         key: "cellWidth",
         get: function get() {

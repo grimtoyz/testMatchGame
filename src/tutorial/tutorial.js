@@ -62,7 +62,6 @@ export default class Tutorial extends PIXI.Container{
     }
 
     onFadeInComplete(){
-
     }
 
     createMask(){
